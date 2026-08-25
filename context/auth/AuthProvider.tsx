@@ -12,16 +12,15 @@ import {
 } from "firebase/auth";
 import {GoogleAuthProvider} from "@firebase/auth";
 import {GoogleSignin} from "@react-native-google-signin/google-signin";
+import {GOOGLE_CLIENT_ID} from "@/utils/renderSecrets";
 
 export const AuthProvider = ({children}: ChildrenProps) => {
     const [user, setUser] = useState<UserType>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<ErrorType>(null);
-    const [isAuthenticated, setIsAuthenticated] = useState(false);
 
     GoogleSignin.configure({
-        // TODO: update credential
-        webClientId: 'YOUR_WEB_CLIENT_://googleusercontent.com', // From Firebase Console -> Google Provider
+        webClientId: GOOGLE_CLIENT_ID, // From Firebase Console -> Google Provider,
     });
 
     // Automatically track changes to the login state stored in SecureStore
@@ -57,12 +56,14 @@ export const AuthProvider = ({children}: ChildrenProps) => {
             setIsLoading(false);
         }
     }
+
+    // Cannot run in Expo Go
     const loginWithGoogle = async () => {
         try {
             // TODO: update "iosUrlScheme" in app.json
             try {
                 // Check if Google Play Services are available (essential for Android)
-                await GoogleSignin.hasPlayServices({ showPlayServicesUpdateDialog: true });
+                await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
 
                 // Initiate the native pop-up login
                 const signInResult = await GoogleSignin.signIn();
@@ -81,7 +82,7 @@ export const AuthProvider = ({children}: ChildrenProps) => {
                 return userCredential.user;
 
             } catch (error) {
-               setError( "An error occurred during Google Sign-In.");
+                setError("An error occurred during Google Sign-In.");
             }
         } catch (err: unknown) {
             setError((err as Error).message);
@@ -89,28 +90,34 @@ export const AuthProvider = ({children}: ChildrenProps) => {
     }
     const loginWithApple = async () => {
         console.log("loginWithApple")
+        // https://docs.expo.dev/versions/latest/sdk/apple-authentication/
     }
     const loginWithFacebook = async () => {
         console.log("loginWithFacebook")
+        // https://docs.expo.dev/guides/facebook-authentication/
     }
     const logout = async () => {
-        console.log("logout")
+        await signOut(auth);
+        setError("");
+        setUser(null)
     }
 
-    <AuthContext.Provider value={{
-        user,
-        error,
-        isAuthenticated,
-        isLoading,
-        logout,
-        loginWithEmail,
-        registerWithEmail,
-        loginWithGoogle,
-        loginWithApple,
-        loginWithFacebook,
-    }}>
-        {children}
-    </AuthContext.Provider>
+    return (
+        <AuthContext.Provider value={{
+            user,
+            error,
+            isAuthenticated: !!user,
+            isLoading,
+            logout,
+            loginWithEmail,
+            registerWithEmail,
+            loginWithGoogle,
+            loginWithApple,
+            loginWithFacebook,
+        }}>
+            {children}
+        </AuthContext.Provider>
+    )
 }
 
 export default AuthProvider;

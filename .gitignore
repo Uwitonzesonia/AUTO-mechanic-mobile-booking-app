@@ -45,3 +45,5 @@ yarn-error.*
 
 .env.example
 .env
+/google-services.json
+/GoogleService-Info.plist
