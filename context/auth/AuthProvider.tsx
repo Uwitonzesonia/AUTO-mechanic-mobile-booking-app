@@ -8,7 +8,6 @@ import {
     signInWithCredential,
     signInWithEmailAndPassword,
     signOut,
-    User
 } from "firebase/auth";
 import {GoogleAuthProvider} from "@firebase/auth";
 import {GoogleSignin} from "@react-native-google-signin/google-signin";
@@ -90,13 +89,19 @@ export const AuthProvider = ({children}: ChildrenProps) => {
     }
     const loginWithApple = async () => {
         console.log("loginWithApple")
-        // https://docs.expo.dev/versions/latest/sdk/apple-authentication/
+        // ToDo: https://docs.expo.dev/versions/latest/sdk/apple-authentication/
     }
     const loginWithFacebook = async () => {
         console.log("loginWithFacebook")
         // https://docs.expo.dev/guides/facebook-authentication/
     }
     const logout = async () => {
+        try {
+            await GoogleSignin.signOut();
+        } catch (e) {
+            //
+        }
+
         await signOut(auth);
         setError("");
         setUser(null)
