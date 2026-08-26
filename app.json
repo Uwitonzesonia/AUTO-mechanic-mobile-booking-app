@@ -1,16 +1,28 @@
 {
   "expo": {
-    "name": "AUTO-Mechanic",
-    "slug": "AUTO-Mechanic",
+    "name": "AUTO Mechanic",
+    "slug": "auto-mechanic",
     "version": "1.0.0",
     "orientation": "portrait",
     "icon": "./assets/images/icon.png",
     "scheme": "automechanic",
     "userInterfaceStyle": "automatic",
     "ios": {
-      "supportsTablet": true
+      "supportsTablet": true,
+      "infoPlist": {
+        "SKAdNetworkItems": [
+          {
+            "SKAdNetworkIdentifier": "v9wttpbfk9.skadnetwork"
+          },
+          {
+            "SKAdNetworkIdentifier": "n38lu8286q.skadnetwork"
+          }
+        ]
+      }
     },
     "android": {
+      "googleServicesFile": "./google-services.json",
+      "newArchEnabled": false,
       "adaptiveIcon": {
         "backgroundColor": "#E6F4FE",
         "foregroundImage": "./assets/images/android-icon-foreground.png",
@@ -18,7 +30,10 @@
         "monochromeImage": "./assets/images/android-icon-monochrome.png"
       },
       "predictiveBackGestureEnabled": false,
-      "package": "com.bunsenplus.automechanic"
+      "package": "com.bunsenplus.automechanic",
+      "permissions": [
+        "android.permission.INTERNET"
+      ]
     },
     "web": {
       "bundler": "metro",
@@ -42,10 +57,26 @@
         }
       ],
       "expo-secure-store",
-      "@react-native-google-signin/google-signin"
+      [
+        "react-native-fbsdk-next",
+        {
+          "appID": "YOUR_FACEBOOK_APP_ID_HERE",
+          "clientToken": "YOUR_FACEBOOK_CLIENT_TOKEN_HERE",
+          "displayName": "AUTO-Mechanic",
+          "advertiserIDCollectionEnabled": false,
+          "autoLogAppEventsEnabled": false
+        }
+      ]
     ],
     "experiments": {
       "typedRoutes": true
-    }
+    },
+    "extra": {
+      "router": {},
+      "eas": {
+        "projectId": "96eb9554-f315-4dc4-bf75-53d31bdb9297"
+      }
+    },
+    "owner": "bunsenplus-dev"
   }
 }
