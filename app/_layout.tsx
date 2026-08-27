@@ -1,13 +1,18 @@
 import {Stack, useRouter, useSegments} from "expo-router";
 import AuthProvider from "@/context/auth/AuthProvider";
 import {useAuth} from "@/hooks/useAuth";
-import {useEffect} from "react";
+import {useEffect, useState} from "react";
 import * as SplashScreen from 'expo-splash-screen';
 import {SafeAreaView} from "react-native-safe-area-context";
-
-SplashScreen.preventAutoHideAsync();
+import AnimatedSplashScreen from "@/components/splash/AnimatedSplashScreen";
 
 export default function RootLayout() {
+    const [showSplash, setShowSplash] = useState(true);
+
+    if (showSplash) {
+        return <AnimatedSplashScreen onFinish={() => setShowSplash(false)} />;
+    }
+
     return (
         <AuthProvider>
             <SafeAreaView style={{flex: 1}}>

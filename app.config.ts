@@ -26,7 +26,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
         android: {
             googleServicesFile: "./google-services.json",
             adaptiveIcon: {
-                backgroundColor: "#E6F4FE",
+                backgroundColor: "#000000",
                 foregroundImage: "./assets/images/android-icon-foreground.png",
                 backgroundImage: "./assets/images/android-icon-background.png",
                 monochromeImage: "./assets/images/android-icon-monochrome.png"
@@ -51,7 +51,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
                 {
                     image: "./assets/images/splash-icon.png",
                     resizeMode: "contain",
-                    backgroundColor: "#ffffff"
+                    backgroundColor: "#000000"
                 }
             ],
             [
