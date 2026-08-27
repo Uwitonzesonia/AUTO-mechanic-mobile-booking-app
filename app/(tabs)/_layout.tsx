@@ -1,10 +1,9 @@
-import { SymbolView } from 'expo-symbols';
-import { Link, Tabs } from 'expo-router';
-import { Platform, Pressable } from 'react-native';
+import { Link, Tabs } from "expo-router";
+import { SymbolView } from "expo-symbols";
+import { Pressable } from "react-native";
 
-import Colors from '@/constants/Colors';
-import { useColorScheme } from '@/components/useColorScheme';
-import { useClientOnlyValue } from '@/components/useClientOnlyValue';
+import { useColorScheme } from "@/components/useColorScheme";
+import Colors from "@/constants/Colors";
 
 export default function TabLayout() {
   const colorScheme = useColorScheme();
@@ -13,20 +12,20 @@ export default function TabLayout() {
     <Tabs
       screenOptions={{
         tabBarActiveTintColor: Colors[colorScheme].tint,
-        // Disable the static render of the header on web
-        // to prevent a hydration error in React Navigation v6.
-        headerShown: useClientOnlyValue(false, true),
-      }}>
+        headerShown: false,
+        tabBarStyle: { display: "none" },
+      }}
+    >
       <Tabs.Screen
         name="index"
         options={{
-          title: 'Tab One',
+          title: "Tab One",
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
+                ios: "chevron.left.forwardslash.chevron.right",
+                android: "code",
+                web: "code",
               }}
               tintColor={color}
               size={28}
@@ -37,7 +36,7 @@ export default function TabLayout() {
               <Pressable style={{ marginRight: 15 }}>
                 {({ pressed }) => (
                   <SymbolView
-                    name={{ ios: 'info.circle', android: 'info', web: 'info' }}
+                    name={{ ios: "info.circle", android: "info", web: "info" }}
                     size={25}
                     tintColor={Colors[colorScheme].text}
                     style={{ opacity: pressed ? 0.5 : 1 }}
@@ -51,13 +50,13 @@ export default function TabLayout() {
       <Tabs.Screen
         name="two"
         options={{
-          title: 'Tab Two',
+          title: "Tab Two",
           tabBarIcon: ({ color }) => (
             <SymbolView
               name={{
-                ios: 'chevron.left.forwardslash.chevron.right',
-                android: 'code',
-                web: 'code',
+                ios: "chevron.left.forwardslash.chevron.right",
+                android: "code",
+                web: "code",
               }}
               tintColor={color}
               size={28}
