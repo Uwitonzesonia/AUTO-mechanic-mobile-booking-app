@@ -2,11 +2,11 @@ import {Button, StyleSheet} from 'react-native';
 import {Text, View} from '@/components/Themed';
 import {useAuth} from "@/hooks/useAuth";
 
-export default function HomeScreen() {
+export default function WalletScreen() {
     const {logout, userProfile, user} = useAuth();
     return (
         <View style={styles.container}>
-            <Text>Home Screen</Text>
+            <Text>Wallet Screen</Text>
             <Button
                 title={"Logout"}
                 onPress={logout}
