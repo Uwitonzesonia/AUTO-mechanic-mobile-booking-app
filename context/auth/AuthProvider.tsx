@@ -1,20 +1,32 @@
 import {useEffect, useState} from "react";
 import {ChildrenProps, ErrorType} from "@/types/general";
 import {AuthContext} from "./AuthContext";
-import {AuthProps, UserType} from "@/types/auth";
-import {auth} from "@/config/firebaseConfig";
+import {AuthProps, UserProfile, UserType} from "@/types/auth";
+import {auth, db} from "@/config/firebaseConfig";
 import {
     createUserWithEmailAndPassword,
     signInWithCredential,
     signInWithEmailAndPassword,
     signOut,
 } from "firebase/auth";
-import {GoogleAuthProvider} from "@firebase/auth";
+import {
+    collection,
+    doc,
+    getDoc,
+    getDocs,
+    limit,
+    query,
+    serverTimestamp,
+    setDoc,
+    where,
+} from "firebase/firestore";
+import {GoogleAuthProvider} from "firebase/auth";
 import {GoogleSignin} from "@react-native-google-signin/google-signin";
 import {GOOGLE_CLIENT_ID} from "@/utils/renderSecrets";
 
 export const AuthProvider = ({children}: ChildrenProps) => {
     const [user, setUser] = useState<UserType>(null);
+    const [userProfile, setUserProfile] = useState<UserProfile | null>(null);
     const [isLoading, setIsLoading] = useState<boolean>(true);
     const [error, setError] = useState<ErrorType>(null);
 
@@ -22,53 +34,132 @@ export const AuthProvider = ({children}: ChildrenProps) => {
         webClientId: GOOGLE_CLIENT_ID, // From Firebase Console -> Google Provider,
     });
 
-    // Automatically track changes to the login state stored in SecureStore
+    // Automatically track changes to the auth state and fetch user profile from Firestore
     useEffect(() => {
-        return auth.onAuthStateChanged((currentUser) => {
+        return auth.onAuthStateChanged(async (currentUser) => {
             setUser(currentUser);
-            setIsLoading(false)
+            if (currentUser) {
+                try {
+                    const docSnap = await getDoc(doc(db, "users", currentUser.uid));
+                    if (docSnap.exists()) {
+                        setUserProfile(docSnap.data() as UserProfile);
+                    }
+                } catch (err: any) {
+                    console.error("Error fetching user profile:", err?.message || err);
+                }
+            } else {
+                setUserProfile(null);
+            }
+            setIsLoading(false);
         });
     }, []);
 
-    const loginWithEmail = async ({email, password}: AuthProps) => {
-        if (!email || !password) return setError("Please fill in all fields.");
-        setIsLoading(true);
-        setError("");
-        try {
-            await signInWithEmailAndPassword(auth, email, password);
-        } catch (error: any) {
-            setError(error.message || "An error occurred during login in.");
-        } finally {
-            setIsLoading(false);
-        }
-    }
+    // Allows login using either email or username
+    const loginWithEmail = async (userData: AuthProps) => {
+        const identifier = (userData.username || userData.email || "").trim();
+        const password = userData.password;
 
-    const registerWithEmail = async ({email, password}: AuthProps) => {
-        if (!email || !password) return setError("Please fill in all fields.");
+        if (!identifier || !password) {
+            return setError("Please fill in all fields.");
+        }
+
         setIsLoading(true);
         setError("");
+
         try {
-            await createUserWithEmailAndPassword(auth, email, password);
-        } catch (error: any) {
-            setError(error.message || "An error occurred during sign up.");
+            let emailToUse = identifier;
+
+            // If identifier does not contain '@', look up email by username in Firestore
+            if (!identifier.includes("@")) {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("username", "==", identifier), limit(1));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    setError("No account found with this username.");
+                    setIsLoading(false);
+                    return;
+                }
+
+                const matchedDoc = querySnapshot.docs[0].data();
+                emailToUse = matchedDoc.email;
+            }
+
+            await signInWithEmailAndPassword(auth, emailToUse, password);
+        } catch (err: any) {
+            setError(err.message || "An error occurred during login.");
         } finally {
             setIsLoading(false);
         }
-    }
+    };
+
+    // Registers user in Firebase Auth and creates Firestore document with role "customer"
+    const registerWithEmail = async (userData: AuthProps) => {
+        const username = (userData.username || "").trim();
+        const email = (userData.email || "").trim().toLowerCase();
+        const password = userData.password;
+        const phoneNumber = (userData.phoneNumber || "").trim();
+        const fullName = (userData.fullName || "").trim();
+
+        if (!username || !email || !password) {
+            return setError("Please fill in all required fields.");
+        }
+
+        setIsLoading(true);
+        setError("");
+
+        try {
+            // Check if username is already taken
+            const usersRef = collection(db, "users");
+            const q = query(usersRef, where("username", "==", username), limit(1));
+            const querySnapshot = await getDocs(q);
+
+            if (!querySnapshot.empty) {
+                setError("Username is already taken. Please choose another.");
+                setIsLoading(false);
+                return;
+            }
+
+            // Create Firebase Auth user
+            const userCredential = await createUserWithEmailAndPassword(auth, email, password);
+            const uid = userCredential.user.uid;
+
+            // Create Firestore user document
+            const newProfile: UserProfile = {
+                uid,
+                username,
+                email,
+                phoneNumber,
+                fullName,
+                role: "customer",
+                createdAt: serverTimestamp(),
+            };
+
+            await setDoc(doc(db, "users", uid), newProfile);
+            setUserProfile(newProfile);
+        } catch (err: any) {
+            setError(err.message || "An error occurred during sign up.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
 
     // Cannot run in Expo Go
     const loginWithGoogle = async () => {
         try {
-            // TODO: update "iosUrlScheme" in app.json
             try {
                 // Check if Google Play Services are available (essential for Android)
                 await GoogleSignin.hasPlayServices({showPlayServicesUpdateDialog: true});
 
+                // Clear existing session so account picker shows
+                try {
+                    await GoogleSignin.signOut();
+                } catch {}
+
                 // Initiate the native pop-up login
                 const signInResult = await GoogleSignin.signIn();
 
-                // Extract ID Token safely across package version variations
-                const idToken = signInResult.data?.idToken || signInResult.data?.idToken;
+                const idToken = signInResult.data?.idToken;
                 if (!idToken) {
                     throw new Error('Google Sign-In failed: No ID token returned.');
                 }
@@ -78,23 +169,51 @@ export const AuthProvider = ({children}: ChildrenProps) => {
 
                 // Sign into Firebase
                 const userCredential = await signInWithCredential(auth, credential);
-                return userCredential.user;
 
-            } catch (error) {
-                setError("An error occurred during Google Sign-In.");
+                // Ensure user profile exists in Firestore
+                if (userCredential.user) {
+                    const userDocRef = doc(db, "users", userCredential.user.uid);
+                    const docSnap = await getDoc(userDocRef);
+
+                    if (!docSnap.exists()) {
+                        const googleProfile: UserProfile = {
+                            uid: userCredential.user.uid,
+                            username:
+                                userCredential.user.displayName?.replace(/\s+/g, "").toLowerCase() ||
+                                userCredential.user.email?.split("@")[0] ||
+                                "user",
+                            email: userCredential.user.email || "",
+                            phoneNumber: userCredential.user.phoneNumber || "",
+                            fullName: userCredential.user.displayName || "",
+                            role: "customer",
+                            createdAt: serverTimestamp(),
+                        };
+                        await setDoc(userDocRef, googleProfile);
+                        setUserProfile(googleProfile);
+                    } else {
+                        setUserProfile(docSnap.data() as UserProfile);
+                    }
+                }
+
+                return userCredential.user;
+            } catch (err: any) {
+                setError(err.message || "An error occurred during Google Sign-In.");
             }
         } catch (err: unknown) {
             setError((err as Error).message);
         }
-    }
+    };
+
     const loginWithApple = async () => {
-        console.log("loginWithApple")
+        console.log("loginWithApple");
         // ToDo: https://docs.expo.dev/versions/latest/sdk/apple-authentication/
-    }
+    };
+
     const loginWithFacebook = async () => {
-        console.log("loginWithFacebook")
+        console.log("loginWithFacebook");
         // https://docs.expo.dev/guides/facebook-authentication/
-    }
+    };
+
     const logout = async () => {
         try {
             await GoogleSignin.signOut();
@@ -104,12 +223,14 @@ export const AuthProvider = ({children}: ChildrenProps) => {
 
         await signOut(auth);
         setError("");
-        setUser(null)
-    }
+        setUser(null);
+        setUserProfile(null);
+    };
 
     return (
         <AuthContext.Provider value={{
             user,
+            userProfile,
             error,
             isAuthenticated: !!user,
             isLoading,
@@ -122,7 +243,7 @@ export const AuthProvider = ({children}: ChildrenProps) => {
         }}>
             {children}
         </AuthContext.Provider>
-    )
-}
+    );
+};
 
 export default AuthProvider;

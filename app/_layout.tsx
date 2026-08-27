@@ -3,13 +3,16 @@ import AuthProvider from "@/context/auth/AuthProvider";
 import {useAuth} from "@/hooks/useAuth";
 import {useEffect} from "react";
 import * as SplashScreen from 'expo-splash-screen';
+import {SafeAreaView} from "react-native-safe-area-context";
 
 SplashScreen.preventAutoHideAsync();
 
 export default function RootLayout() {
     return (
         <AuthProvider>
-            <RootLayoutNav/>
+            <SafeAreaView style={{flex: 1}}>
+                <RootLayoutNav/>
+            </SafeAreaView>
         </AuthProvider>
     )
 }
@@ -33,7 +36,7 @@ function RootLayoutNav() {
         SplashScreen.hideAsync();
     }, [isAuthenticated, isLoading, segments])
 
-    if(isLoading) return null;
+    if (isLoading) return null;
 
     return (
         <Stack>

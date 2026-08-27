@@ -1,5 +1,4 @@
-// Import the functions you need from the SDKs you need
-import {initializeApp} from "firebase/app";
+import {getApp, getApps, initializeApp} from "firebase/app";
 import {
     FIREBASE_API_KEY, FIREBASE_APP_ID,
     FIREBASE_AUTH_DOMAIN,
@@ -7,8 +6,9 @@ import {
     FIREBASE_PROJECT_ID,
     FIREBASE_STORAGE_BUCKET
 } from "@/utils/renderSecrets";
-import {initializeAuth, getReactNativePersistence } from '@firebase/auth';
+import {getAuth, initializeAuth, getReactNativePersistence} from "firebase/auth";
 import {secureStorageEngine} from "@/utils/secureStore";
+import {getFirestore} from "firebase/firestore";
 
 // Your web app's Firebase configuration
 const firebaseConfig = {
@@ -20,10 +20,20 @@ const firebaseConfig = {
     appId: FIREBASE_APP_ID
 };
 
-// Initialize Firebase
-const app = initializeApp(firebaseConfig);
+// Initialize Firebase (safely handling Fast Refresh)
+export const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApp();
 
 // Initialize authentication with our custom secure adapter
-export const auth = initializeAuth(app, {
-    persistence: getReactNativePersistence(secureStorageEngine),
-});
+let authInstance;
+try {
+    authInstance = initializeAuth(app, {
+        persistence: getReactNativePersistence(secureStorageEngine),
+    });
+} catch {
+    authInstance = getAuth(app);
+}
+export const auth = authInstance;
+
+// Initialize Firestore
+export const db = getFirestore(app);
+
