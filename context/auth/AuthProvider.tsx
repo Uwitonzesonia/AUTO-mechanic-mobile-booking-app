@@ -5,7 +5,9 @@ import {AuthProps, UserProfile, UserType} from "@/types/auth";
 import {auth, db} from "@/config/firebaseConfig";
 import {
     createUserWithEmailAndPassword,
+    sendPasswordResetEmail,
     signInWithCredential,
+    FacebookAuthProvider,
     signInWithEmailAndPassword,
     signOut,
 } from "firebase/auth";
@@ -20,6 +22,7 @@ import {
     setDoc,
     where,
 } from "firebase/firestore";
+import {LoginManager, AccessToken} from "react-native-fbsdk-next"
 import {GoogleAuthProvider} from "firebase/auth";
 import {GoogleSignin} from "@react-native-google-signin/google-signin";
 import {GOOGLE_CLIENT_ID} from "@/utils/renderSecrets";
@@ -154,7 +157,8 @@ export const AuthProvider = ({children}: ChildrenProps) => {
                 // Clear existing session so account picker shows
                 try {
                     await GoogleSignin.signOut();
-                } catch {}
+                } catch {
+                }
 
                 // Initiate the native pop-up login
                 const signInResult = await GoogleSignin.signIn();
@@ -206,17 +210,112 @@ export const AuthProvider = ({children}: ChildrenProps) => {
 
     const loginWithApple = async () => {
         console.log("loginWithApple");
-        // ToDo: https://docs.expo.dev/versions/latest/sdk/apple-authentication/
+        // https://docs.expo.dev/versions/latest/sdk/apple-authentication/
     };
 
     const loginWithFacebook = async () => {
-        console.log("loginWithFacebook");
-        // https://docs.expo.dev/guides/facebook-authentication/
+        setIsLoading(true);
+        setError("");
+        try {
+            const result = await LoginManager.logInWithPermissions(["public_profile", "email"])
+            if (result.isCancelled) {
+                setIsLoading(false);
+                return;
+            }
+
+            const data = await AccessToken.getCurrentAccessToken();
+            if (!data) {
+                throw new Error("No facebook access token");
+            }
+
+            const credential = FacebookAuthProvider.credential(data.accessToken);
+
+            const userCredential = await signInWithCredential(auth, credential)
+
+            if (userCredential.user) {
+                const userDocRef = doc(db, "users", userCredential.user.uid);
+                const docSnap = await getDoc(userDocRef);
+
+                if (!docSnap.exists()) {
+                    const fbProfile: UserProfile = {
+                        uid: userCredential.user.uid,
+                        username:
+                            userCredential.user.displayName?.replace(/\s+/g, "").toLowerCase() ||
+                            userCredential.user.email?.split("@")[0] ||
+                            "user",
+                        email: userCredential.user.email || "",
+                        phoneNumber: userCredential.user.phoneNumber || "",
+                        role: "customer",
+                        createdAt: serverTimestamp()
+                    };
+                    await setDoc(userDocRef, fbProfile);
+                    setUserProfile(fbProfile);
+                } else {
+                    setUserProfile(docSnap.data() as UserProfile);
+                }
+            }
+            return userCredential.user;
+        } catch (err: any) {
+            setError(err.message || "An error occurred during Facebook Sign-In.");
+        } finally {
+            setIsLoading(false);
+        }
+    };
+
+    const sendPasswordReset = async (emailOrUsername: string): Promise<boolean> => {
+        const identifier = (emailOrUsername || "").trim();
+
+        if (!identifier) {
+            setError("Please enter your email or username.");
+            return false;
+        }
+
+        setIsLoading(true);
+        setError("");
+
+        try {
+            let emailToUse = identifier;
+
+            // If identifier does not contain '@', look up email by username in Firestore
+            if (!identifier.includes("@")) {
+                const usersRef = collection(db, "users");
+                const q = query(usersRef, where("username", "==", identifier), limit(1));
+                const querySnapshot = await getDocs(q);
+
+                if (querySnapshot.empty) {
+                    setError("No account found with this username.");
+                    setIsLoading(false);
+                    return false;
+                }
+
+                const matchedDoc = querySnapshot.docs[0].data();
+                emailToUse = matchedDoc.email;
+            }
+
+            await sendPasswordResetEmail(auth, emailToUse);
+            return true;
+        } catch (err: any) {
+            let message = "An error occurred while sending reset email.";
+            if (err?.code === "auth/user-not-found") {
+                message = "No account found with this email address.";
+            } else if (err?.code === "auth/invalid-email") {
+                message = "Please enter a valid email address.";
+            } else if (err?.code === "auth/too-many-requests") {
+                message = "Too many requests. Please try again later.";
+            } else if (err?.message) {
+                message = err.message;
+            }
+            setError(message);
+            return false;
+        } finally {
+            setIsLoading(false);
+        }
     };
 
     const logout = async () => {
         try {
             await GoogleSignin.signOut();
+            LoginManager.logOut();
         } catch (e) {
             //
         }
@@ -237,6 +336,7 @@ export const AuthProvider = ({children}: ChildrenProps) => {
             logout,
             loginWithEmail,
             registerWithEmail,
+            sendPasswordReset,
             loginWithGoogle,
             loginWithApple,
             loginWithFacebook,

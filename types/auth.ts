@@ -31,8 +31,9 @@ export interface AuthContextType {
     isLoading?: boolean;
     loginWithEmail: (userData: AuthProps) => Promise<void>;
     registerWithEmail: (userData: AuthProps) => Promise<void>;
+    sendPasswordReset: (emailOrUsername: string) => Promise<boolean>;
     loginWithGoogle: () => Promise<User | undefined>;
-    loginWithFacebook: () => Promise<void>;
+    loginWithFacebook: () => Promise<User | undefined>;
     loginWithApple: () => Promise<void>;
     logout: () => Promise<void>;
-}
+}
