@@ -1,4 +1,4 @@
-// app/login.tsx
+// app/login.tsx - HOMEPAGE
 import React from 'react';
 import {
   View,
@@ -9,11 +9,8 @@ import {
   ImageBackground,
   StatusBar,
   SafeAreaView,
-  Dimensions,
 } from 'react-native';
 import { useRouter } from 'expo-router';
-
-const { width, height } = Dimensions.get('window');
 
 export default function LoginScreen() {
   const router = useRouter();
@@ -28,7 +25,7 @@ export default function LoginScreen() {
       <View style={styles.overlay}>
         <SafeAreaView style={styles.safeArea}>
           <View style={styles.container}>
-            {/* Header with Logo */}
+            {/* Header */}
             <View style={styles.header}>
               <Image
                 source={require('../assets/logo.png')}
@@ -38,7 +35,7 @@ export default function LoginScreen() {
               <Text style={styles.logoText}>AUT</Text>
             </View>
 
-            {/* Main Content - Centered */}
+            {/* Content */}
             <View style={styles.content}>
               <Text style={styles.title}>
                 Lets Get{"\n"}
@@ -54,20 +51,14 @@ export default function LoginScreen() {
               {/* Buttons */}
               <View style={styles.buttonContainer}>
                 <Pressable
-                  style={({ pressed }) => [
-                    styles.loginButton,
-                    pressed && styles.buttonPressed,
-                  ]}
+                  style={styles.loginButton}
                   onPress={() => router.push('/login-form')}
                 >
                   <Text style={styles.loginButtonText}>Login</Text>
                 </Pressable>
 
                 <Pressable
-                  style={({ pressed }) => [
-                    styles.registerButton,
-                    pressed && styles.buttonPressed,
-                  ]}
+                  style={styles.registerButton}
                   onPress={() => router.push('/register')}
                 >
                   <Text style={styles.registerButtonText}>Register</Text>
@@ -171,9 +162,5 @@ const styles = StyleSheet.create({
     fontSize: 17,
     fontWeight: '700',
     letterSpacing: 0.5,
-  },
-  buttonPressed: {
-    opacity: 0.7,
-    transform: [{ scale: 0.97 }],
   },
 });

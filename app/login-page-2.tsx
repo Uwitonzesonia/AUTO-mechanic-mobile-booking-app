@@ -9,9 +9,9 @@ import {
   Dimensions,
   ImageBackground,
   StatusBar,
-  SafeAreaView,
 } from 'react-native';
 import { useRouter } from 'expo-router';
+import { SafeAreaView } from 'react-native-safe-area-context';
 
 const { width, height } = Dimensions.get('window');
 

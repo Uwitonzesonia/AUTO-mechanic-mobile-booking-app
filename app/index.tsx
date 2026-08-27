@@ -1,29 +1,34 @@
-import { useRouter } from "expo-router";
-import { useEffect } from "react";
+// app/index.tsx
+import { useEffect, useState } from "react";
 import { Image, Pressable, StyleSheet } from "react-native";
+import OnboardingScreen from './Onboarding';
 
-export default function Home() {
-  const router = useRouter();
-
-  const openLoginHomepage = () => {
-    router.replace("/login");
-  };
+export default function Index() {
+  const [showSplash, setShowSplash] = useState(true);
 
   useEffect(() => {
-    const splashTimer = setTimeout(openLoginHomepage, 1800);
+    const splashTimer = setTimeout(() => {
+      setShowSplash(false);
+    }, 3600);
 
     return () => clearTimeout(splashTimer);
-  }, [router]);
+  }, []);
 
-  return (
-    <Pressable onPress={openLoginHomepage} style={styles.container}>
-      <Image
-        source={require("../assets/logo.png")}
-        style={styles.logo}
-        resizeMode="contain"
-      />
-    </Pressable>
-  );
+  // Show Splash Screen
+  if (showSplash) {
+    return (
+      <Pressable onPress={() => setShowSplash(false)} style={styles.container}>
+        <Image
+          source={require("../assets/logo.png")}
+          style={styles.logo}
+          resizeMode="contain"
+        />
+      </Pressable>
+    );
+  }
+
+  // Show Onboarding
+  return <OnboardingScreen />;
 }
 
 const styles = StyleSheet.create({
