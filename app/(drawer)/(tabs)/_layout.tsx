@@ -1,14 +1,9 @@
+import {Redirect, Tabs} from 'expo-router';
+import {useAuth} from "@/hooks/useAuth";
 import React from "react";
-import { View, TouchableOpacity, StyleSheet } from "react-native";
-import { Tabs } from "expo-router";
-import {
-    HomeIcon,
-    GarageIcon,
-    WrenchIcon,
-    WalletIcon,
-    ProfileIcon,
-    TabIconProps,
-} from "@/utils/tabsIcons";
+import {GarageIcon, HomeIcon, ProfileIcon, TabIconProps, WalletIcon, WrenchIcon} from "@/utils/tabsIcons";
+import {Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import CustomHeader from "@/components/navigations/CustomHeader";
 
 export type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
@@ -25,7 +20,7 @@ const ICONS: Record<string, React.FC<TabIconProps>> = {
     Profile: ProfileIcon,
 };
 
-export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
+export function CustomTabBar({state, navigation}: BottomTabBarProps) {
     return (
         <View style={styles.wrapper}>
             <View style={styles.bar}>
@@ -83,20 +78,55 @@ export function CustomTabBar({ state, navigation }: BottomTabBarProps) {
     );
 }
 
-export default function CustomTabs() {
+export default function TabLayout() {
+    const {isAuthenticated, isLoading, userProfile, user} = useAuth();
+
+    if (isLoading) return null;
+    if (!isAuthenticated) return <Redirect href="/(auth)/login"/>;
+
+    const avatarUri = user?.photoURL;
+    const displayName = userProfile?.fullName || userProfile?.username || user?.displayName || "User";
+    const initial = (displayName[0] || "U").toUpperCase();
+
     return (
         <Tabs
             tabBar={(props) => <CustomTabBar {...props} />}
             screenOptions={{
-                headerShown: false,
-                tabBarShowLabel: false,
+                header: (props) =>
+                    <CustomHeader
+                        title={props?.options?.title || props?.route?.name || "Home"}
+                        rightAction={
+                            <TouchableOpacity
+                                onPress={() => props.navigation.navigate("profile")}
+                                style={styles.profileHeaderButton}
+                                activeOpacity={0.7}
+                            >
+                                <View style={styles.avatarContainer}>
+                                    {avatarUri ? (
+                                        <Image
+                                            source={{uri: avatarUri}}
+                                            style={styles.avatarImage}
+                                        />
+                                    ) : (
+                                        <View style={styles.avatarFallback}>
+                                            <Text style={styles.avatarInitial}>{initial}</Text>
+                                        </View>
+                                    )}
+                                    <View style={styles.activeDot}/>
+                                </View>
+                                <Text style={styles.profileHeaderName} numberOfLines={1}>
+                                    {displayName}
+                                </Text>
+                            </TouchableOpacity>
+                        }
+                    />
             }}
         >
-            <Tabs.Screen name="index" />
-            <Tabs.Screen name="garage" />
-            <Tabs.Screen name="maintenance" />
-            <Tabs.Screen name="wallet" />
-            <Tabs.Screen name="profile" />
+            <Tabs.Screen name="index" options={{title: "Home"}}/>
+            <Tabs.Screen name="garage" options={{title: "Garage"}}/>
+            <Tabs.Screen name="maintenance" options={{title: "Maintenance"}}/>
+            <Tabs.Screen name="wallet" options={{title: "Wallet"}}/>
+            <Tabs.Screen name="profile" options={{title: "Profile"}}/>
         </Tabs>
     );
 }
@@ -137,8 +167,56 @@ const styles = StyleSheet.create({
         marginTop: -28,
         shadowColor: "#000",
         shadowOpacity: 0.4,
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowRadius: 8,
         elevation: 6,
+    },
+    profileHeaderButton: {
+        flexDirection: "row",
+        alignItems: "center",
+        gap: 8,
+        paddingVertical: 4,
+        paddingHorizontal: 4,
+    },
+    avatarContainer: {
+        position: "relative",
+        width: 32,
+        height: 32,
+    },
+    avatarImage: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: "#202730",
+    },
+    avatarFallback: {
+        width: 32,
+        height: 32,
+        borderRadius: 16,
+        backgroundColor: "#FF5924",
+        alignItems: "center",
+        justifyContent: "center",
+    },
+    avatarInitial: {
+        color: "#FFFFFF",
+        fontSize: 13,
+        fontWeight: "700",
+    },
+    activeDot: {
+        position: "absolute",
+        bottom: 0,
+        right: 0,
+        width: 9,
+        height: 9,
+        borderRadius: 4.5,
+        backgroundColor: "#22C55E",
+        borderWidth: 1.5,
+        borderColor: "#000000",
+    },
+    profileHeaderName: {
+        color: "#FFFFFF",
+        fontSize: 13,
+        fontWeight: "500",
+        maxWidth: 100,
     },
 });

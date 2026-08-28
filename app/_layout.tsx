@@ -35,7 +35,7 @@ function RootLayoutNav() {
         if (!isAuthenticated && !inAuthGroup) {
             router.replace("/(auth)/login")
         } else if (isAuthenticated && inAuthGroup) {
-            router.replace("/(tabs)")
+            router.replace("/(drawer)/(tabs)")
         }
 
         SplashScreen.hideAsync();
@@ -44,10 +44,9 @@ function RootLayoutNav() {
     if (isLoading) return null;
 
     return (
-        <Stack>
+        <Stack screenOptions={{headerShown: false}}>
             <Stack.Screen name="(auth)" options={{headerShown: false}}/>
-            <Stack.Screen name="(tabs)" options={{headerShown: false}}/>
-            <Stack.Screen name="modal" options={{presentation: 'modal'}}/>
+            <Stack.Screen name="(drawer)" options={{headerShown: false}}/>
         </Stack>
     )
 }
