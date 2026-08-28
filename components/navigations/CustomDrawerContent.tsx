@@ -7,6 +7,7 @@ import {useSafeAreaInsets} from "react-native-safe-area-context";
 import AntDesign from "@react-native-vector-icons/ant-design";
 import MaterialDesignIcons from "@react-native-vector-icons/material-design-icons";
 import {Ionicons} from "@react-native-vector-icons/ionicons";
+import {LinearBgView} from "@/components/LinearBg";
 
 const DrawerItems = [
     {
@@ -44,12 +45,7 @@ export default function CustomDrawerContent(props: any) {
     const insets = useSafeAreaInsets();
 
     return (
-        <LinearGradient
-            colors={["#202730", "#15191d"]}
-            start={{x: 0, y: 0}}
-            end={{x: 0, y: 1}}
-            style={styles.gradientContainer}
-        >
+        <LinearBgView>
             <DrawerContentScrollView
                 {...props}
                 contentContainerStyle={styles.scrollContent}
@@ -114,15 +110,11 @@ export default function CustomDrawerContent(props: any) {
                     <Text style={styles.logoutText}>LOGOUT</Text>
                 </TouchableOpacity>
             </View>
-        </LinearGradient>
+        </LinearBgView>
     );
 }
 
 const styles = StyleSheet.create({
-    gradientContainer: {
-        flex: 1,
-        justifyContent: "space-between",
-    },
     scrollContent: {
         paddingTop: 8,
     },

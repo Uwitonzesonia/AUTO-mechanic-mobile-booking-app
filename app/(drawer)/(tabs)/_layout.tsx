@@ -114,7 +114,7 @@ export default function TabLayout() {
                                     )}
                                     <View style={styles.activeDot}/>
                                 </View>
-                                <Text style={styles.profileHeaderName} numberOfLines={1}>
+                                <Text style={styles.profileHeaderName} numberOfLines={2}>
                                     {displayName}
                                 </Text>
                             </TouchableOpacity>
@@ -174,9 +174,11 @@ const styles = StyleSheet.create({
     profileHeaderButton: {
         flexDirection: "row",
         alignItems: "center",
+        justifyContent: "flex-end",
+        alignSelf: "flex-end",
         gap: 8,
-        paddingVertical: 4,
-        paddingHorizontal: 4,
+        paddingVertical: 2,
+        paddingHorizontal: 0,
     },
     avatarContainer: {
         position: "relative",
@@ -215,8 +217,10 @@ const styles = StyleSheet.create({
     },
     profileHeaderName: {
         color: "#FFFFFF",
-        fontSize: 13,
+        fontSize: 12,
         fontWeight: "500",
-        maxWidth: 100,
+        maxWidth: 80,
+        lineHeight: 16,
+        textAlign: "left",
     },
 });
