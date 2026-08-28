@@ -122,7 +122,7 @@ AUTO-mechanic-mobile-booking-app/
 ├── components/            # Reusable UI component library
 │   ├── StyledText.tsx     # Custom styled text primitives
 │   ├── Themed.tsx         # Themed View and Text wrappers
-│   ├── AppTabs.tsx         # Top application header bar
+│   ├── CustomTabs.tsx         # Top application header bar
 │   └── EditScreenInfo.tsx # Screen helper component
 ├── config/                # Service initialization
 │   └── firebaseConfig.ts  # Firebase App & Auth with SecureStore persistence

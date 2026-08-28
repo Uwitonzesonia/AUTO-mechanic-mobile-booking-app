@@ -1,6 +1,6 @@
 import {Redirect} from 'expo-router';
 import {useAuth} from "@/hooks/useAuth";
-import AppTabs from "@/components/AppTabs";
+import CustomTabs from "@/components/navigations/CustomTabs";
 
 export default function TabLayout() {
     const {isAuthenticated, isLoading} = useAuth();
@@ -9,6 +9,6 @@ export default function TabLayout() {
     if (!isAuthenticated) return <Redirect href="/(auth)/login"/>;
 
     return (
-        <AppTabs/>
+        <CustomTabs/>
     );
 }
