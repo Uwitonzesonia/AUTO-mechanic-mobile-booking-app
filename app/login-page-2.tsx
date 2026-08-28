@@ -1,4 +1,3 @@
-// app/login-page-2.tsx
 import React from 'react';
 import {
   View,
@@ -27,7 +26,6 @@ export default function LoginPage2() {
       <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
       <View style={styles.overlay}>
         <SafeAreaView style={styles.safeArea}>
-          {/* Back Button */}
           <Pressable 
             style={styles.backButton}
             onPress={() => router.push('/login')}
