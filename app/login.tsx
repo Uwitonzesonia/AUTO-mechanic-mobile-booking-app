@@ -1,166 +1,120 @@
-// app/login.tsx - HOMEPAGE
-import React from 'react';
+import React, { useState } from 'react';
 import {
+  StyleSheet,
   View,
   Text,
+  TextInput,
+  TouchableOpacity,
   Image,
-  StyleSheet,
-  Pressable,
-  ImageBackground,
   StatusBar,
   SafeAreaView,
+  KeyboardAvoidingView,
+  Platform,
 } from 'react-native';
 import { useRouter } from 'expo-router';
 
-export default function LoginScreen() {
+export default function LoginInputsScreen() {
   const router = useRouter();
+  const [username, setUsername] = useState('');
+  const [password, setPassword] = useState('');
 
   return (
-    <ImageBackground
-      source={require('../assets/login-bg.png')}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Image
-                source={require('../assets/logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <KeyboardAvoidingView 
+        behavior={Platform.OS === 'ios' ? 'padding' : 'height'} 
+        style={styles.keyboardView}
+      >
+        <View style={styles.innerContainer}>
+          
+          <TouchableOpacity style={styles.backButton} onPress={() => router.back()}>
+            <Text style={styles.backButtonText}>←</Text>
+          </TouchableOpacity>
+
+          <View style={styles.logoContainer}>
+            <Image source={require('../assets/logo.png')} style={styles.logo} resizeMode="contain" />
+          </View>
+
+          <View style={styles.headerBlock}>
+            <Text style={styles.welcomeText}>Welcome</Text>
+            <Text style={styles.subtitleText}>Insert your username and password</Text>
+          </View>
+
+          <View style={styles.formContainer}>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Username</Text>
+              <TextInput
+                style={styles.input}
+                value={username}
+                onChangeText={setUsername}
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                autoCapitalize="none"
               />
-              <Text style={styles.logoText}>AUT</Text>
             </View>
 
-            {/* Content */}
-            <View style={styles.content}>
-              <Text style={styles.title}>
-                Lets Get{"\n"}
-                <Text style={styles.highlight}>started</Text> with us
-              </Text>
-
-              <Text style={styles.description}>
-                Get started with using our service, design for convenience, repair bookings. 
-                Get acquired with tools created to enhance vehicle experience and help 
-                safeguard your vehicle against unprofessional repairs.
-              </Text>
-
-              {/* Buttons */}
-              <View style={styles.buttonContainer}>
-                <Pressable
-                  style={styles.loginButton}
-                  onPress={() => router.push('/login-form')}
-                >
-                  <Text style={styles.loginButtonText}>Login</Text>
-                </Pressable>
-
-                <Pressable
-                  style={styles.registerButton}
-                  onPress={() => router.push('/register')}
-                >
-                  <Text style={styles.registerButtonText}>Register</Text>
-                </Pressable>
-              </View>
+            <View style={styles.inputWrapper}>
+              <Text style={styles.inputLabel}>Password</Text>
+              <TextInput
+                style={styles.input}
+                value={password}
+                onChangeText={setPassword}
+                secureTextEntry
+                placeholderTextColor="rgba(255,255,255,0.3)"
+                autoCapitalize="none"
+              />
             </View>
           </View>
-        </SafeAreaView>
-      </View>
-    </ImageBackground>
+
+          <View style={styles.socialSection}>
+            <Text style={styles.socialDividerText}>Or log in with</Text>
+            <View style={styles.socialIconsRow}>
+              <TouchableOpacity style={styles.socialIconCircle}>
+                <Image source={{ uri: 'https://icons8.com' }} style={styles.iconImage} />
+              </TouchableOpacity>
+              
+              <TouchableOpacity style={styles.socialIconCircle}>
+                <Image source={{ uri: 'https://icons8.com' }} style={styles.iconImage} />
+              </TouchableOpacity>
+
+              <TouchableOpacity style={styles.socialIconCircle}>
+                <Image source={{ uri: 'https://icons8.com' }} style={styles.iconImage} />
+              </TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.actionButtonContainer}>
+            <TouchableOpacity style={styles.formLoginButton} onPress={() => console.log('Log In Submit')}>
+              <Text style={styles.formLoginButtonText}>Login</Text>
+            </TouchableOpacity>
+          </View>
+
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    marginRight: 10,
-  },
-  logoText: {
-    color: '#ffffff',
-    fontSize: 30,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingBottom: 30,
-  },
-  title: {
-    color: '#ffffff',
-    fontSize: 42,
-    fontWeight: 'bold',
-    lineHeight: 50,
-    marginBottom: 16,
-  },
-  highlight: {
-    color: '#4a9eff',
-  },
-  description: {
-    color: '#c8ccd6',
-    fontSize: 15,
-    lineHeight: 24,
-    marginBottom: 50,
-    letterSpacing: 0.3,
-  },
-  buttonContainer: {
-    width: '100%',
-    gap: 16,
-  },
-  loginButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: '#ffffff',
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loginButtonText: {
-    color: '#161b22',
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  registerButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: 'transparent',
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
-  },
-  registerButtonText: {
-    color: '#ffffff',
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+  container: { flex: 1, backgroundColor: '#131921' },
+  keyboardView: { flex: 1 },
+  innerContainer: { flex: 1, paddingHorizontal: 30, justifyContent: 'space-between', paddingBottom: 40 },
+  backButton: { marginTop: 15, alignSelf: 'flex-start', padding: 5 },
+  backButtonText: { color: '#FFFFFF', fontSize: 26, fontWeight: 'bold' },
+  logoContainer: { width: 140, height: 50, alignSelf: 'center' },
+  logo: { width: '100%', height: '100%' },
+  headerBlock: { marginTop: 20, alignItems: 'flex-start' },
+  welcomeText: { fontSize: 36, fontWeight: 'bold', color: '#FFFFFF', marginBottom: 6 },
+  subtitleText: { fontSize: 14, color: '#a3a7b0' },
+  formContainer: { marginTop: 20, gap: 25 },
+  inputWrapper: { width: '100%' },
+  inputLabel: { fontSize: 11, color: '#a3a7b0', marginBottom: 4 },
+  input: { width: '100%', height: 35, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.4)', color: '#FFFFFF', fontSize: 15, paddingVertical: 4 },
+  socialSection: { alignItems: 'center', marginTop: 20 },
+  socialDividerText: { fontSize: 12, color: '#a3a7b0', marginBottom: 16 },
+  socialIconsRow: { flexDirection: 'row', gap: 16 },
+  socialIconCircle: { width: 44, height: 44, borderRadius: 22, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
+  iconImage: { width: 22, height: 22, resizeMode: 'contain' },
+  actionButtonContainer: { width: '100%', marginTop: 20 },
+  formLoginButton: { backgroundColor: '#FFFFFF', paddingVertical: 14, borderRadius: 25, width: '100%', alignItems: 'center' },
+  formLoginButtonText: { color: '#131921', fontSize: 16, fontWeight: 'bold' },
 });
