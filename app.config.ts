@@ -45,6 +45,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
         plugins: [
             "@react-native-vector-icons/ionicons",
             "@react-native-vector-icons/material-design-icons",
+            "@react-native-vector-icons/fontawesome",
             "expo-router",
             [
                 "expo-splash-screen",

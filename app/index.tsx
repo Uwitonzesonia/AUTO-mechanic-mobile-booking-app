@@ -1,27 +1,24 @@
-import React, {useEffect, useState} from "react";
-import {ActivityIndicator, StyleSheet, View} from "react-native";
-import {Redirect} from "expo-router";
+import React, { useEffect, useState } from "react";
+import { StyleSheet, View } from "react-native";
+import { Redirect } from "expo-router";
 import OnboardingScreen from "@/app/onboarding";
-import {useAuth} from "@/hooks/useAuth";
-import {secureStorageEngine} from "@/utils/secureStore";
+import { useAuth } from "@/hooks/useAuth";
+import { secureStorageEngine } from "@/utils/secureStore";
+import { LoadingOverlay } from "@/components/ui";
 
 export default function Index() {
-    const {isAuthenticated, isLoading: authLoading} = useAuth();
-    const [checkingFirstTime, setCheckingFirstTime] = useState(!__DEV__);
-    const [isFirstTime, setIsFirstTime] = useState(true);
+    const { isAuthenticated, isLoading: authLoading } = useAuth();
+    const [checkingFirstTime, setCheckingFirstTime] = useState(true);
+    const [isFirstTime, setIsFirstTime] = useState(false);
 
     useEffect(() => {
-        if (__DEV__) {
-            return;
-        }
-
         const checkFirstTime = async () => {
             try {
                 const openFirstTime = await secureStorageEngine.getItem("openFirstTime");
                 setIsFirstTime(!openFirstTime);
             } catch (error) {
                 console.error("Error checking openFirstTime:", error);
-                setIsFirstTime(true);
+                setIsFirstTime(false);
             } finally {
                 setCheckingFirstTime(false);
             }
@@ -30,34 +27,30 @@ export default function Index() {
         checkFirstTime();
     }, []);
 
-    if (__DEV__) {
-        return <OnboardingScreen/>;
-    }
+    const isLoading = checkingFirstTime || authLoading;
 
-    if (checkingFirstTime || authLoading) {
+    if (isLoading) {
         return (
-            <View style={styles.loadingContainer}>
-                <ActivityIndicator size="large" color="#FFFFFF"/>
+            <View style={styles.container}>
+                <LoadingOverlay visible={true} />
             </View>
         );
     }
 
-    if (isFirstTime) {
-        return <OnboardingScreen/>;
-    }
     if (isAuthenticated) {
-        return <Redirect href="/(drawer)/(tabs)"/>;
+        return <Redirect href="/(drawer)/(tabs)" />;
     }
 
-    return <Redirect href="/(auth)/login"/>;
+    if (isFirstTime) {
+        return <OnboardingScreen />;
+    }
+
+    return <Redirect href="/(auth)/login" />;
 }
 
 const styles = StyleSheet.create({
-    loadingContainer: {
+    container: {
         flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
         backgroundColor: "#0f151d",
     },
 });
-

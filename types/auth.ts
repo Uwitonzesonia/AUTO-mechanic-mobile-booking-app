@@ -1,5 +1,5 @@
-import {User} from "firebase/auth";
-import {ErrorType} from "@/types/general";
+import { User } from "firebase/auth";
+import { ErrorType } from "@/types/general";
 
 export type UserRole = "customer" | "mechanic" | "admin";
 
@@ -23,6 +23,27 @@ export interface AuthProps {
     email?: string;
     fullName?: string;
     phoneNumber?: string;
+}
+
+export type AuthAction = "login" | "register" | "forgot-password";
+
+export interface AuthFormProps {
+    action: AuthAction;
+    onSuccess?: () => void;
+}
+
+export interface UseAuthFormReturn {
+    userData: AuthProps;
+    showPassword: boolean;
+    setShowPassword: React.Dispatch<React.SetStateAction<boolean>>;
+    displayedError: string | null;
+    successMessage: string | null;
+    isLoading: boolean;
+    handleFieldChange: (field: keyof AuthProps, value: string) => void;
+    handleSubmit: () => Promise<void>;
+    loginWithApple: () => Promise<void>;
+    loginWithFacebook: () => Promise<any>;
+    loginWithGoogle: () => Promise<any>;
 }
 
 export interface AuthContextType {
