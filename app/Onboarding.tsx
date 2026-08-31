@@ -100,7 +100,6 @@ export default function OnboardingScreen() {
           style={styles.page}
           imageStyle={styles.bgImage}
         >
-          {/* ✅ FIXED: Changed absoluteFillObject to absoluteFill */}
           <View style={styles.overlayLight} />
           {slideContent()}
         </ImageBackground>
@@ -158,7 +157,6 @@ const styles = StyleSheet.create({
     height: "50%",
     resizeMode: "cover",
   },
-  // ✅ FIXED: Changed absoluteFillObject to absoluteFill
   overlayLight: {
     position: 'absolute',
     top: 0,
