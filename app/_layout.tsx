@@ -31,22 +31,25 @@ function RootLayoutNav() {
         if (isLoading) return;
 
         const inAuthGroup = segments[0] === '(auth)';
+        const inDrawerGroup = segments[0] === '(drawer)';
 
-        if (!isAuthenticated && !inAuthGroup) {
-            router.replace("/(auth)/login")
+        if (!isAuthenticated && inDrawerGroup) {
+            router.replace("/(auth)/login");
         } else if (isAuthenticated && inAuthGroup) {
-            router.replace("/(drawer)/(tabs)")
+            router.replace("/(drawer)/(tabs)");
         }
 
         SplashScreen.hideAsync();
-    }, [isAuthenticated, isLoading, segments])
+    }, [isAuthenticated, isLoading, segments]);
 
     if (isLoading) return null;
 
     return (
         <Stack screenOptions={{headerShown: false}}>
+            <Stack.Screen name="index" options={{headerShown: false}}/>
+            <Stack.Screen name="onboarding" options={{headerShown: false}}/>
             <Stack.Screen name="(auth)" options={{headerShown: false}}/>
             <Stack.Screen name="(drawer)" options={{headerShown: false}}/>
         </Stack>
-    )
+    );
 }
