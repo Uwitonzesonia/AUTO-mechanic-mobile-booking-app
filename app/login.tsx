@@ -1,166 +1,78 @@
-// app/login.tsx - HOMEPAGE
-import React from 'react';
-import {
-  View,
-  Text,
-  Image,
-  StyleSheet,
-  Pressable,
-  ImageBackground,
-  StatusBar,
-  SafeAreaView,
-} from 'react-native';
+import React, { useState } from 'react';
+import { StyleSheet, View, Text, TextInput, TouchableOpacity, Image, StatusBar, SafeAreaView, KeyboardAvoidingView, Platform } from 'react-native';
 import { useRouter } from 'expo-router';
 
 export default function LoginScreen() {
   const router = useRouter();
+  const [user, setUser] = useState('');
+  const [pass, setPass] = useState('');
 
   return (
-    <ImageBackground
-      source={require('../assets/login-bg.png')}
-      style={styles.background}
-      resizeMode="cover"
-    >
-      <StatusBar barStyle="light-content" translucent backgroundColor="transparent" />
-      <View style={styles.overlay}>
-        <SafeAreaView style={styles.safeArea}>
-          <View style={styles.container}>
-            {/* Header */}
-            <View style={styles.header}>
-              <Image
-                source={require('../assets/logo.png')}
-                style={styles.logo}
-                resizeMode="contain"
-              />
-              <Text style={styles.logoText}>AUT</Text>
+    <SafeAreaView style={styles.container}>
+      <StatusBar barStyle="light-content" />
+      <KeyboardAvoidingView behavior={Platform.OS === 'ios' ? 'padding' : 'height'} style={{ flex: 1 }}>
+        <View style={styles.content}>
+          
+          <View style={styles.logoRow}>
+            <Text style={styles.logoText}>AUT</Text>
+            <Image source={require('../assets/logo.png')} style={styles.logoImg} resizeMode="contain" />
+          </View>
+
+          <View style={styles.textBlock}>
+            <Text style={styles.title}>Welcome</Text>
+            <Text style={styles.subtitle}>Insert your username and password</Text>
+          </View>
+
+          <View style={styles.form}>
+            <View>
+              <Text style={styles.label}>Username</Text>
+              <TextInput style={styles.input} value={user} onChangeText={setUser} autoCapitalize="none" />
             </View>
-
-            {/* Content */}
-            <View style={styles.content}>
-              <Text style={styles.title}>
-                Lets Get{"\n"}
-                <Text style={styles.highlight}>started</Text> with us
-              </Text>
-
-              <Text style={styles.description}>
-                Get started with using our service, design for convenience, repair bookings. 
-                Get acquired with tools created to enhance vehicle experience and help 
-                safeguard your vehicle against unprofessional repairs.
-              </Text>
-
-              {/* Buttons */}
-              <View style={styles.buttonContainer}>
-                <Pressable
-                  style={styles.loginButton}
-                  onPress={() => router.push('/login-form')}
-                >
-                  <Text style={styles.loginButtonText}>Login</Text>
-                </Pressable>
-
-                <Pressable
-                  style={styles.registerButton}
-                  onPress={() => router.push('/register')}
-                >
-                  <Text style={styles.registerButtonText}>Register</Text>
-                </Pressable>
-              </View>
+            <View style={{ marginTop: 15 }}>
+              <Text style={styles.label}>Password</Text>
+              <TextInput style={styles.input} value={pass} onChangeText={setPass} secureTextEntry autoCapitalize="none" />
             </View>
           </View>
-        </SafeAreaView>
-      </View>
-    </ImageBackground>
+
+          <View style={styles.socialBox}>
+            <Text style={styles.subtitle}>Or log in with</Text>
+            <View style={styles.socialRow}>
+              <TouchableOpacity style={styles.circle}><Image source={{ uri: 'https://icons8.com' }} style={styles.icon} /></TouchableOpacity>
+              <TouchableOpacity style={styles.circle}><Image source={{ uri: 'https://icons8.com' }} style={styles.icon} /></TouchableOpacity>
+              <TouchableOpacity style={styles.circle}><Image source={{ uri: 'https://icons8.com' }} style={styles.icon} /></TouchableOpacity>
+            </View>
+          </View>
+
+          <View style={styles.buttons}>
+            <TouchableOpacity style={styles.whiteBtn}><Text style={styles.darkText}>Login</Text></TouchableOpacity>
+            <TouchableOpacity style={styles.borderBtn} onPress={() => router.push('/register')}><Text style={styles.whiteText}>Register</Text></TouchableOpacity>
+          </View>
+
+        </View>
+      </KeyboardAvoidingView>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
-  background: {
-    flex: 1,
-    width: '100%',
-    height: '100%',
-  },
-  overlay: {
-    flex: 1,
-    backgroundColor: 'rgba(0, 0, 0, 0.6)',
-  },
-  safeArea: {
-    flex: 1,
-  },
-  container: {
-    flex: 1,
-    paddingHorizontal: 32,
-    paddingTop: 60,
-    paddingBottom: 40,
-  },
-  header: {
-    flexDirection: 'row',
-    alignItems: 'center',
-    marginBottom: 20,
-  },
-  logo: {
-    width: 40,
-    height: 40,
-    marginRight: 10,
-  },
-  logoText: {
-    color: '#ffffff',
-    fontSize: 30,
-    fontWeight: '800',
-    letterSpacing: 1,
-  },
-  content: {
-    flex: 1,
-    justifyContent: 'center',
-    paddingBottom: 30,
-  },
-  title: {
-    color: '#ffffff',
-    fontSize: 42,
-    fontWeight: 'bold',
-    lineHeight: 50,
-    marginBottom: 16,
-  },
-  highlight: {
-    color: '#4a9eff',
-  },
-  description: {
-    color: '#c8ccd6',
-    fontSize: 15,
-    lineHeight: 24,
-    marginBottom: 50,
-    letterSpacing: 0.3,
-  },
-  buttonContainer: {
-    width: '100%',
-    gap: 16,
-  },
-  loginButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: '#ffffff',
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-  },
-  loginButtonText: {
-    color: '#161b22',
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
-  registerButton: {
-    width: '100%',
-    height: 56,
-    backgroundColor: 'transparent',
-    borderRadius: 28,
-    alignItems: 'center',
-    justifyContent: 'center',
-    borderWidth: 1.5,
-    borderColor: '#ffffff',
-  },
-  registerButtonText: {
-    color: '#ffffff',
-    fontSize: 17,
-    fontWeight: '700',
-    letterSpacing: 0.5,
-  },
+  container: { flex: 1, backgroundColor: '#131921' },
+  content: { flex: 1, paddingHorizontal: 32, paddingTop: 40, paddingBottom: 40, justifyContent: 'space-between' },
+  logoRow: { flexDirection: 'row', alignItems: 'center', justifyContent: 'center', gap: 6 },
+  logoText: { color: '#ffffff', fontSize: 26, fontWeight: '800', letterSpacing: 2 },
+  logoImg: { width: 28, height: 28 },
+  textBlock: { alignItems: 'flex-start', marginTop: 10 },
+  title: { fontSize: 42, fontWeight: '800', color: '#FFFFFF' },
+  subtitle: { fontSize: 13, color: '#a3a7b0', marginTop: 4 },
+  form: { width: '100%' },
+  label: { fontSize: 11, color: '#a3a7b0', marginBottom: 4 },
+  input: { width: '100%', height: 38, borderBottomWidth: 1, borderBottomColor: 'rgba(255, 255, 255, 0.4)', color: '#FFFFFF', fontSize: 15 },
+  socialBox: { alignItems: 'center' },
+  socialRow: { flexDirection: 'row', gap: 16, marginTop: 12 },
+  circle: { width: 42, height: 42, borderRadius: 21, backgroundColor: '#FFFFFF', justifyContent: 'center', alignItems: 'center' },
+  icon: { width: 20, height: 20, resizeMode: 'contain' },
+  buttons: { width: '100%', gap: 12 },
+  whiteBtn: { backgroundColor: '#FFFFFF', paddingVertical: 14, borderRadius: 25, width: '100%', alignItems: 'center' },
+  darkText: { color: '#131921', fontSize: 16, fontWeight: 'bold' },
+  borderBtn: { backgroundColor: 'transparent', paddingVertical: 14, borderRadius: 25, borderWidth: 1.5, borderColor: '#FFFFFF', width: '100%', alignItems: 'center' },
+  whiteText: { color: '#FFFFFF', fontSize: 16, fontWeight: 'bold' },
 });

@@ -1,51 +1,41 @@
-// app/Onboarding.tsx - With 3 Slides
-import React, { useState, useRef } from 'react';
+// app/Onboarding.tsx - FIXED
+import { useRouter } from "expo-router";
+import { useRef, useState } from "react";
 import {
+  Dimensions,
+  FlatList,
+  Image,
+  ImageBackground,
+  SafeAreaView,
+  StatusBar,
   StyleSheet,
-  View,
   Text,
   TouchableOpacity,
-  Dimensions,
-  Image,
-  StatusBar,
-  SafeAreaView,
-  FlatList,
-} from 'react-native';
-import { useRouter } from 'expo-router';
+  View,
+  Platform,
+} from "react-native";
 
-const { width, height } = Dimensions.get('window');
+const { width, height } = Dimensions.get("window");
 
-// 👇 ADD MORE SLIDES HERE
+// Responsive sizes
+const isTablet = width >= 768;
+
 const SLIDES = [
   {
-    id: '1',
-    title: 'Lets Get',
-    subtitle: 'started with us',
-    desc: 'Get started with using our service, design for convenience, repair bookings. Get acquired with tools created to enhance vehicle experience and help safeguard your vehicle against unprofessional repairs.',
-    bg: '#1a2332',
+    id: "1",
+    type: "car-intro",
+    title: "Lets Get",
+    subtitle: "started with us",
+    desc: "Get started with using our service, design for convenient repair bookings. Get aquinted with tools created to enhance vehicle ownership pleasures and help safeguard your vehicle against unprofessional repairs.",
+    useFullBg: true,
   },
   {
-    id: '2',
-    title: 'Quality number one',
-    subtitle: '',
-    desc: 'Quality repair, assessment and training to guarantee easy repair, testing for vehicle owners. Active customer support to help customers in your comfort & lives.',
-    bg: '#1a2332',
-  },
-  // 👇 ADD THIS THIRD SLIDE
-  {
-    id: '3',
-    title: 'Your Title Here',
-    subtitle: 'Your subtitle here',
-    desc: 'Your description goes here. Add content for the third onboarding screen.',
-    bg: '#1a2332',
-  },
- 
-  {
-    id: '4',
-    title: 'Fourth Slide',
-    subtitle: 'Subtitle',
-    desc: 'Description for fourth slide.',
-    bg: '#1a2332',
+    id: "2",
+    type: "text-intro",
+    title: "Quality",
+    subtitle: "number one",
+    desc: "Quality repair assured with system tracking to facilitate easy repair monitoring for vehicle owners. Active customer support to help attend to your complaints in minutes.",
+    useFullBg: false,
   },
 ];
 
@@ -54,59 +44,78 @@ export default function OnboardingScreen() {
   const [currentPage, setCurrentPage] = useState(0);
   const flatListRef = useRef<FlatList>(null);
 
-  const handleNext = () => {
-    if (currentPage < SLIDES.length - 1) {
-      flatListRef.current?.scrollToIndex({
-        index: currentPage + 1,
-        animated: true,
-      });
-      setCurrentPage(currentPage + 1);
-    } else {
-      router.replace('/login');
-    }
+  const handleScroll = (e: any) => {
+    setCurrentPage(Math.round(e.nativeEvent.contentOffset.x / width));
   };
 
-  const handleSkip = () => {
-    router.replace('/login');
-  };
-
-  const handleScroll = (event: any) => {
-    const index = Math.round(event.nativeEvent.contentOffset.x / width);
-    setCurrentPage(index);
-  };
-
-  const renderItem = ({ item }: { item: typeof SLIDES[0] }) => (
-    <View style={[styles.page, { backgroundColor: item.bg }]}>
-      <View style={styles.imageContainer}>
+  const renderItem = ({ item }: { item: any }) => {
+    const logoHeader = (
+      <View style={styles.logoContainer}>
         <Image
-          source={require('../assets/logo.png')}
-          style={styles.logo}
+          source={require("../assets/logo.png")}
+          style={styles.logoImg}
           resizeMode="contain"
         />
       </View>
+    );
 
-      <Text style={styles.title}>
-        {item.title}
-        {item.subtitle ? (
-          <>
+    const dualButtons = () => (
+      <View style={styles.buttons}>
+        <TouchableOpacity
+          style={styles.whiteBtn}
+          onPress={() => router.push("/login")}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.darkText}>Login</Text>
+        </TouchableOpacity>
+        <TouchableOpacity
+          style={styles.borderBtn}
+          onPress={() => router.push("/register")}
+          activeOpacity={0.8}
+        >
+          <Text style={styles.whiteText}>Register</Text>
+        </TouchableOpacity>
+      </View>
+    );
+
+    const slideContent = () => (
+      <View style={styles.content}>
+        {logoHeader}
+        <View style={styles.textBlock}>
+          <Text style={styles.titleLarge}>
+            {item.title}
             {"\n"}
-            <Text style={styles.highlight}>{item.subtitle}</Text>
-          </>
-        ) : null}
-      </Text>
+            <Text style={styles.highlightText}>{item.subtitle}</Text>
+          </Text>
+          <Text style={styles.descText}>{item.desc}</Text>
+        </View>
+        {dualButtons()}
+      </View>
+    );
 
-      <Text style={styles.description}>{item.desc}</Text>
-    </View>
-  );
+    if (item.useFullBg) {
+      return (
+        <ImageBackground
+          source={require("../assets/login-bg.png")}
+          style={styles.page}
+          imageStyle={styles.bgImage}
+        >
+          <View style={styles.overlayLight} />
+          {slideContent()}
+        </ImageBackground>
+      );
+    }
+
+    return <View style={[styles.page, { backgroundColor: "#131921" }]}>{slideContent()}</View>;
+  };
 
   return (
     <SafeAreaView style={styles.container}>
-      <StatusBar barStyle="light-content" />
-
-      <TouchableOpacity style={styles.skipButton} onPress={handleSkip}>
-        <Text style={styles.skipText}>Skip</Text>
-      </TouchableOpacity>
-
+      <StatusBar
+        barStyle="light-content"
+        translucent
+        backgroundColor="transparent"
+      />
       <FlatList
         ref={flatListRef}
         data={SLIDES}
@@ -116,26 +125,19 @@ export default function OnboardingScreen() {
         pagingEnabled
         showsHorizontalScrollIndicator={false}
         onMomentumScrollEnd={handleScroll}
+        snapToInterval={width}
+        decelerationRate="fast"
       />
-
-      <View style={styles.footer}>
-        <View style={styles.dotContainer}>
-          {SLIDES.map((_, index) => (
-            <View
-              key={index}
-              style={[
-                styles.dot,
-                currentPage === index ? styles.activeDot : styles.inactiveDot,
-              ]}
-            />
-          ))}
-        </View>
-
-        <TouchableOpacity style={styles.button} onPress={handleNext}>
-          <Text style={styles.buttonText}>
-            {currentPage === SLIDES.length - 1 ? 'Get Started' : 'Next'}
-          </Text>
-        </TouchableOpacity>
+      <View style={styles.dotRow}>
+        {SLIDES.map((_, i) => (
+          <View
+            key={i}
+            style={[
+              styles.dot,
+              currentPage === i ? styles.activeDot : styles.inactiveDot,
+            ]}
+          />
+        ))}
       </View>
     </SafeAreaView>
   );
@@ -144,93 +146,114 @@ export default function OnboardingScreen() {
 const styles = StyleSheet.create({
   container: {
     flex: 1,
-    backgroundColor: '#161b22',
-  },
-  skipButton: {
-    position: 'absolute',
-    top: 20,
-    right: 20,
-    zIndex: 10,
-    padding: 10,
-  },
-  skipText: {
-    color: '#a3a7b0',
-    fontSize: 16,
-    fontWeight: '600',
+    backgroundColor: "#131921",
   },
   page: {
     width: width,
-    height: height - 100,
-    justifyContent: 'center',
-    alignItems: 'center',
-    padding: 40,
-    paddingTop: 60,
+    height: height,
   },
-  imageContainer: {
-    width: 120,
-    height: 120,
-    marginBottom: 40,
-    alignItems: 'center',
-    justifyContent: 'center',
+  bgImage: {
+    width: "100%",
+    height: "50%",
+    resizeMode: "cover",
   },
-  logo: {
-    width: '100%',
-    height: '100%',
+  overlayLight: {
+    position: 'absolute',
+    top: 0,
+    left: 0,
+    right: 0,
+    bottom: 0,
+    backgroundColor: "rgba(19, 25, 33, 0.15)",
   },
-  title: {
-    fontSize: 38,
-    fontWeight: 'bold',
-    color: '#FFF',
-    textAlign: 'center',
+  content: {
+    flex: 1,
+    paddingHorizontal: 32,
+    paddingTop: 50,
+    paddingBottom: 80,
+    justifyContent: "space-between",
+  },
+  logoContainer: {
+    alignItems: "center",
+    justifyContent: "center",
+    marginTop: 10,
+  },
+  logoImg: {
+    width: isTablet ? 120 : 100,
+    height: isTablet ? 60 : 50,
+  },
+  textBlock: {
+    marginTop: 20,
+    alignItems: "flex-start",
+  },
+  titleLarge: {
+    fontSize: isTablet ? 56 : 42,
+    fontWeight: "800",
+    color: "#FFFFFF",
+    textAlign: "left",
     marginBottom: 16,
-    lineHeight: 46,
+    lineHeight: isTablet ? 66 : 52,
   },
-  highlight: {
-    color: '#4a9eff',
+  highlightText: {
+    color: "#4a9eff",
   },
-  description: {
-    fontSize: 15,
-    color: '#c8ccd6',
-    textAlign: 'center',
-    lineHeight: 24,
+  descText: {
+    fontSize: isTablet ? 20 : 16,
+    color: "#c8ccd6",
+    textAlign: "left",
+    lineHeight: isTablet ? 30 : 26,
     opacity: 0.9,
   },
-  footer: {
-    position: 'absolute',
+  buttons: {
+    width: "100%",
+    maxWidth: isTablet ? 500 : "100%",
+    alignSelf: "center",
+    gap: 14,
+  },
+  whiteBtn: {
+    backgroundColor: "#FFFFFF",
+    paddingVertical: 16,
+    borderRadius: 30,
+    width: "100%",
+    alignItems: "center",
+  },
+  darkText: {
+    color: "#131921",
+    fontSize: isTablet ? 20 : 17,
+    fontWeight: "bold",
+  },
+  borderBtn: {
+    backgroundColor: "transparent",
+    paddingVertical: 16,
+    borderRadius: 30,
+    borderWidth: 1.5,
+    borderColor: "#FFFFFF",
+    width: "100%",
+    alignItems: "center",
+  },
+  whiteText: {
+    color: "#FFFFFF",
+    fontSize: isTablet ? 20 : 17,
+    fontWeight: "bold",
+  },
+  dotRow: {
+    position: "absolute",
     bottom: 40,
     left: 0,
     right: 0,
-    alignItems: 'center',
-    paddingHorizontal: 30,
-  },
-  dotContainer: {
-    flexDirection: 'row',
-    marginBottom: 20,
+    flexDirection: "row",
+    justifyContent: "center",
+    gap: 8,
   },
   dot: {
+    width: 8,
     height: 8,
     borderRadius: 4,
-    marginHorizontal: 5,
   },
   activeDot: {
+    backgroundColor: "#4a9eff",
     width: 24,
-    backgroundColor: '#4a9eff',
   },
   inactiveDot: {
-    width: 8,
-    backgroundColor: 'rgba(255, 255, 255, 0.3)',
-  },
-  button: {
-    backgroundColor: '#4a9eff',
-    paddingVertical: 16,
-    paddingHorizontal: 60,
-    borderRadius: 30,
-    width: '100%',
-    alignItems: 'center',
-  },
-  buttonText: {
-    color: '#ffffff',
-    fontSize: 16,
-    fontWeight: 'bold',
+    backgroundColor: "rgba(255,255,255,0.3)",
   },
 });
