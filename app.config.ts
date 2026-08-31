@@ -9,7 +9,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
         orientation: "portrait",
         icon: "./assets/images/icon.png",
         scheme: "automechanic",
-        userInterfaceStyle: "automatic",
+        userInterfaceStyle: "light",
         ios: {
             supportsTablet: true,
             infoPlist: {
@@ -60,12 +60,39 @@ export default ({config}: ConfigContext): ExpoConfig => {
                     iosUrlScheme: "com.googleusercontent.apps.EXPO_PUBLIC_IOS_CLIENT_ID"
                 }
             ],
+            [
+                "expo-image-picker",
+                {
+                    photosPermission: "The app accesses your photos to let you share them with your friends.",
+                    color: {
+                        "cropToolbarColor": "#000000"
+                    },
+                    dark: {
+                        "colors": {
+                            "cropToolbarColor": "#000000"
+                        }
+                    }
+                }
+            ],
+            [
+                "expo-camera",
+                {
+                    cameraPermission: "Allow AUTO Mechanic to access your camera"
+                }
+            ],
+            [
+                "expo-media-library",
+                {
+                    photosPermission: "Allow AUTO Mechanic to access your photos",
+                    savePhotosPermission: "Allow AUTO Mechanic to save photos"
+                }
+            ],
             "expo-secure-store",
             [
                 "react-native-fbsdk-next",
                 {
-                    appID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID_HERE,
-                    clientToken: process.env.EXPO_PUBLIC_FACEBOOK_CLIENT_TOKEN_HERE,
+                    appID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID_HERE || "",
+                    clientToken: process.env.EXPO_PUBLIC_FACEBOOK_CLIENT_TOKEN_HERE || "",
                     displayName: "AUTO Mechanic",
                     advertiserIDCollectionEnabled: false,
                     autoLogAppEventsEnabled: false
