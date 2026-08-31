@@ -1,0 +1,9 @@
+import {AuthForm} from "@/components/AuthForm";
+
+const Register = () => {
+    return (
+        <AuthForm action={"register"}/>
+    )
+}
+
+export default Register;

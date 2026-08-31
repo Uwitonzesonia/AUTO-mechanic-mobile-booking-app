@@ -42,3 +42,10 @@ yarn-error.*
 # generated native folders
 /ios
 /android
+
+.env.example
+.env
+/google-services.json
+/GoogleService-Info.plist
+/.vscode/
+/auto-app-solvit-firebase-adminsdk-fbsvc-bf488e64a8.json
