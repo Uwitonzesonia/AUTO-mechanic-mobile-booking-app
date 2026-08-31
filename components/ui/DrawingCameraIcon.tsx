@@ -1,107 +1,143 @@
-import React, { useEffect } from 'react';
-import { View, StyleSheet } from 'react-native';
-import Svg, { Path, Circle, G } from 'react-native-svg';
-import Animated, {
-    useSharedValue,
-    useAnimatedProps,
-    withRepeat,
-    withTiming,
-    interpolate,
-    Extrapolation,
-    Easing,
-} from 'react-native-reanimated';
+import React, { useEffect, useRef } from 'react';
+import { Animated, Easing, StyleSheet, View } from 'react-native';
+import Svg, { Circle, Path } from 'react-native-svg';
 
-const AnimatedPath = Animated.createAnimatedComponent(Path);
-const AnimatedCircle = Animated.createAnimatedComponent(Circle);
-const AnimatedG = Animated.createAnimatedComponent(G);
-
-// lucide-style camera icon, 24x24 viewBox
-const BODY_PATH =
-    'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z';
-const BODY_LENGTH = 65.4; // measured exactly, not eyeballed
-const LENS_RADIUS = 3;
-const LENS_CIRCUMFERENCE = 2 * Math.PI * LENS_RADIUS; // 18.85
-
-const TOTAL_DURATION = 1000; // one full loop, ms
-
-export default function DrawingCameraIcon({
-                                              size = 64,
-                                              color = '#2f9bff',
-                                              strokeWidth = 2,
-                                          }: {
+export interface DrawingCameraIconProps {
     size?: number;
     color?: string;
     strokeWidth?: number;
-}) {
-    const progress = useSharedValue(0);
+}
+
+// Lucide-style camera icon path in a 24x24 viewBox
+const CAMERA_BODY_PATH =
+    'M14.5 4h-5L7 7H4a2 2 0 0 0-2 2v9a2 2 0 0 0 2 2h16a2 2 0 0 0 2-2V9a2 2 0 0 0-2-2h-3l-2.5-3z';
+
+export default function DrawingCameraIcon({
+    size = 44,
+    color = '#0094ff',
+    strokeWidth = 2,
+}: DrawingCameraIconProps) {
+    const scaleAnim = useRef(new Animated.Value(1)).current;
+    const pulseAnim = useRef(new Animated.Value(0.9)).current;
+    const pupilAnim = useRef(new Animated.Value(0.4)).current;
 
     useEffect(() => {
-        progress.value = withRepeat(
-            withTiming(1, { duration: TOTAL_DURATION, easing: Easing.linear }),
-            -1, // infinite
-            false, // don't reverse — snap back to 0 and redraw from scratch each loop
+        // Continuous smooth breathing and lens pulse loop
+        const loop = Animated.loop(
+            Animated.sequence([
+                Animated.parallel([
+                    Animated.timing(scaleAnim, {
+                        toValue: 1.08,
+                        duration: 1200,
+                        easing: Easing.inOut(Easing.ease),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pulseAnim, {
+                        toValue: 1,
+                        duration: 1200,
+                        easing: Easing.inOut(Easing.ease),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pupilAnim, {
+                        toValue: 1,
+                        duration: 1200,
+                        easing: Easing.inOut(Easing.ease),
+                        useNativeDriver: true,
+                    }),
+                ]),
+                Animated.parallel([
+                    Animated.timing(scaleAnim, {
+                        toValue: 1,
+                        duration: 1200,
+                        easing: Easing.inOut(Easing.ease),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pulseAnim, {
+                        toValue: 0.9,
+                        duration: 1200,
+                        easing: Easing.inOut(Easing.ease),
+                        useNativeDriver: true,
+                    }),
+                    Animated.timing(pupilAnim, {
+                        toValue: 0.4,
+                        duration: 1200,
+                        easing: Easing.inOut(Easing.ease),
+                        useNativeDriver: true,
+                    }),
+                ]),
+            ]),
         );
-    }, []);
 
-    // body draws first, 0% -> 45% of the cycle
-    const bodyAnimatedProps = useAnimatedProps(() => ({
-        strokeDashoffset: interpolate(
-            progress.value,
-            [0, 0.45],
-            [BODY_LENGTH, 0],
-            Extrapolation.CLAMP,
-        ),
-    }));
+        loop.start();
 
-    // lens circle draws next, overlapping slightly, 35% -> 70%
-    const lensAnimatedProps = useAnimatedProps(() => ({
-        strokeDashoffset: interpolate(
-            progress.value,
-            [0.35, 0.7],
-            [LENS_CIRCUMFERENCE, 0],
-            Extrapolation.CLAMP,
-        ),
-    }));
-
-    // hold fully drawn from 70% -> 85%, then fade out 85% -> 100%
-    const groupAnimatedProps = useAnimatedProps(() => ({
-        opacity: interpolate(
-            progress.value,
-            [0, 0.85, 1],
-            [1, 1, 0],
-            Extrapolation.CLAMP,
-        ),
-    }));
+        return () => loop.stop();
+    }, [scaleAnim, pulseAnim, pupilAnim]);
 
     return (
         <View style={[styles.container, { width: size, height: size }]}>
-            <Svg width={size} height={size} viewBox="0 0 24 24" fill="none">
-                <AnimatedG animatedProps={groupAnimatedProps}>
-                    <AnimatedPath
-                        d={BODY_PATH}
+            <Animated.View
+                style={[
+                    styles.svgWrapper,
+                    {
+                        transform: [{ scale: scaleAnim }],
+                        opacity: pulseAnim,
+                    },
+                ]}
+            >
+                <Svg
+                    width={size}
+                    height={size}
+                    viewBox="0 0 24 24"
+                    fill="none"
+                >
+                    {/* Camera outer body */}
+                    <Path
+                        d={CAMERA_BODY_PATH}
                         stroke={color}
                         strokeWidth={strokeWidth}
                         strokeLinecap="round"
                         strokeLinejoin="round"
-                        strokeDasharray={BODY_LENGTH}
-                        animatedProps={bodyAnimatedProps}
                     />
-                    <AnimatedCircle
+
+                    {/* Outer lens ring */}
+                    <Circle
                         cx={12}
                         cy={13}
-                        r={LENS_RADIUS}
+                        r={3.2}
                         stroke={color}
                         strokeWidth={strokeWidth}
                         strokeLinecap="round"
-                        strokeDasharray={LENS_CIRCUMFERENCE}
-                        animatedProps={lensAnimatedProps}
+                        strokeLinejoin="round"
                     />
-                </AnimatedG>
-            </Svg>
+
+                    {/* Center lens pupil / aperture */}
+                    <Circle
+                        cx={12}
+                        cy={13}
+                        r={1.4}
+                        fill={color}
+                    />
+
+                    {/* Sensor / flash dot */}
+                    <Circle
+                        cx={17.5}
+                        cy={8.5}
+                        r={0.9}
+                        fill={color}
+                    />
+                </Svg>
+            </Animated.View>
         </View>
     );
 }
 
 const styles = StyleSheet.create({
-    container: { alignItems: 'center', justifyContent: 'center' },
+    container: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
+    svgWrapper: {
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
 });

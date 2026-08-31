@@ -8,7 +8,6 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
 } from 'react-native';
 import { SafeAreaView } from 'react-native-safe-area-context';
@@ -17,9 +16,8 @@ import { useNavigation } from "expo-router";
 import CustomHeader from "@/components/navigations/CustomHeader";
 import AntDesign from "@react-native-vector-icons/ant-design";
 import { LinearBgView } from "@/components/LinearBg";
-import { Avatar } from "@/components/ui/Avatar";
+import { Avatar, Button, DrawingCameraIcon } from "@/components/ui";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
-import DrawingCameraIcon from "@/components/ui/DrawingCameraIcon";
 import CameraPickerModal from "@/components/camera/CameraPickerModal";
 
 const { width: SCREEN_WIDTH } = Dimensions.get('window');
@@ -31,7 +29,6 @@ export default function ProfileScreen() {
     // Camera modal state
     const [isCameraOpen, setIsCameraOpen] = useState(false);
 
-    // Gallery images state (user captured/picked images)
     const [galleryImages, setGalleryImages] = useState<string[]>([]);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
     const galleryListRef = useRef<FlatList>(null);
@@ -45,9 +42,12 @@ export default function ProfileScreen() {
                     showBackButton={true}
                     headerInMiddle={true}
                     rightAction={
-                        <TouchableOpacity onPress={() => Alert.alert("More", "More actions to be added.")}>
-                            <AntDesign name={"more"} size={24} color="white" />
-                        </TouchableOpacity>
+                        <Button
+                            type="ghost"
+                            size="icon"
+                            onPress={() => Alert.alert("More", "More actions to be added.")}
+                            icon={<AntDesign name={"more"} size={24} color="white" />}
+                        />
                     }
                 />
             ),
@@ -70,7 +70,7 @@ export default function ProfileScreen() {
     };
 
     const handleScrollRight = () => {
-        const totalItems = galleryImages.length + 1; // +1 for the Add button
+        const totalItems = galleryImages.length + 1;
         if (scrollIndexRef.current < totalItems - 1) {
             scrollIndexRef.current += 1;
             galleryListRef.current?.scrollToIndex({
@@ -125,16 +125,23 @@ export default function ProfileScreen() {
                     <View style={styles.garageSection}>
                         <View style={styles.sectionHeader}>
                             <Text style={styles.sectionTitle}>Your garage</Text>
-                            <TouchableOpacity style={styles.conditionBtn}>
-                                <Text style={styles.conditionText}>Condition</Text>
-                                <Ionicons name="arrow-forward" size={18} color="#0094ff" style={{ marginLeft: 4 }} />
-                            </TouchableOpacity>
+                            <Button
+                                type="ghost"
+                                style={styles.conditionBtn}
+                                textStyle={styles.conditionText}
+                                icon={<Ionicons name="arrow-forward" size={18} color="#fff" style={{ marginLeft: 4 }} />}
+                                iconPosition="right"
+                            >
+                                Condition
+                            </Button>
                         </View>
-                        <Image
-                            source={require("../../../assets/images/cars/garage1.png")}
-                            style={styles.garageImage}
-                            resizeMode="cover"
-                        />
+                        <View style={styles.garageImageContainer}>
+                            <Image
+                                source={require("../../../assets/images/cars/car1.png")}
+                                style={styles.garageImage}
+                                resizeMode="contain"
+                            />
+                        </View>
                     </View>
 
                     {/* Gallery Section */}
@@ -142,27 +149,24 @@ export default function ProfileScreen() {
                         <View style={styles.galleryHeader}>
                             <View style={styles.galleryTitleRow}>
                                 <Text style={styles.sectionTitle}>Gallery</Text>
-                                {galleryImages.length > 0 && (
-                                    <View style={styles.badge}>
-                                        <Text style={styles.badgeText}>{galleryImages.length}</Text>
-                                    </View>
-                                )}
                             </View>
                             <View style={styles.arrowControls}>
-                                <TouchableOpacity
+                                <Button
+                                    type="secondary"
+                                    size="icon"
                                     style={styles.arrowBtn}
                                     onPress={handleScrollLeft}
                                     activeOpacity={0.7}
-                                >
-                                    <Ionicons name="chevron-back" size={20} color="white" />
-                                </TouchableOpacity>
-                                <TouchableOpacity
+                                    icon={<Ionicons name="chevron-back" size={20} color="white" />}
+                                />
+                                <Button
+                                    type="secondary"
+                                    size="icon"
                                     style={styles.arrowBtn}
                                     onPress={handleScrollRight}
                                     activeOpacity={0.7}
-                                >
-                                    <Ionicons name="chevron-forward" size={20} color="white" />
-                                </TouchableOpacity>
+                                    icon={<Ionicons name="chevron-forward" size={20} color="white" />}
+                                />
                             </View>
                         </View>
 
@@ -178,7 +182,8 @@ export default function ProfileScreen() {
                             renderItem={({ item, index }) => {
                                 if (item === 'add_button') {
                                     return (
-                                        <TouchableOpacity
+                                        <Button
+                                            type="custom"
                                             style={styles.addPhotoCard}
                                             onPress={() => setIsCameraOpen(true)}
                                             activeOpacity={0.75}
@@ -188,27 +193,28 @@ export default function ProfileScreen() {
                                             </View>
                                             <Text style={styles.addPhotoText}>Take / Pick Photo</Text>
                                             <Text style={styles.addPhotoSubtext}>Camera & Gallery</Text>
-                                        </TouchableOpacity>
+                                        </Button>
                                     );
                                 }
 
                                 const photoIndex = index - 1;
                                 return (
                                     <View style={styles.galleryPhotoCard}>
-                                        <TouchableOpacity
+                                        <Button
+                                            type="custom"
                                             onPress={() => setSelectedImage(item)}
                                             activeOpacity={0.85}
                                             style={styles.photoTouchable}
                                         >
                                             <Image source={{ uri: item }} style={styles.galleryPhotoImage} />
-                                        </TouchableOpacity>
-                                        <TouchableOpacity
+                                        </Button>
+                                        <Button
+                                            type="custom"
                                             style={styles.deletePhotoBtn}
                                             onPress={() => handleDeleteGalleryImage(photoIndex)}
                                             activeOpacity={0.7}
-                                        >
-                                            <Ionicons name="trash-outline" size={16} color="#fff" />
-                                        </TouchableOpacity>
+                                            icon={<Ionicons name="trash-outline" size={16} color="#fff" />}
+                                        />
                                     </View>
                                 );
                             }}
@@ -235,13 +241,13 @@ export default function ProfileScreen() {
                     onRequestClose={() => setSelectedImage(null)}
                 >
                     <SafeAreaView style={styles.modalBackdrop} edges={['top', 'bottom']}>
-                        <TouchableOpacity
+                        <Button
+                            type="custom"
                             style={styles.modalCloseBtn}
                             onPress={() => setSelectedImage(null)}
                             activeOpacity={0.7}
-                        >
-                            <Ionicons name="close" size={28} color="#fff" />
-                        </TouchableOpacity>
+                            icon={<Ionicons name="close" size={28} color="#fff" />}
+                        />
 
                         <Image
                             source={{ uri: selectedImage }}
@@ -305,16 +311,24 @@ const styles = StyleSheet.create({
     conditionBtn: {
         flexDirection: 'row',
         alignItems: 'center',
+        paddingHorizontal: 8,
     },
     conditionText: {
-        color: '#0094ff',
+        color: '#fff',
         fontSize: 14,
         fontWeight: '600',
     },
+    garageImageContainer: {
+        width: '100%',
+        height: 190,
+        overflow: 'hidden',
+        alignItems: 'center',
+        justifyContent: 'center',
+    },
     garageImage: {
         width: '100%',
-        height: 180,
-        borderRadius: 14,
+        height: '100%',
+        resizeMode: 'contain',
     },
     gallerySection: {
         marginTop: 24,
@@ -330,17 +344,6 @@ const styles = StyleSheet.create({
         flexDirection: 'row',
         alignItems: 'center',
         gap: 8,
-    },
-    badge: {
-        backgroundColor: '#0094ff',
-        paddingHorizontal: 8,
-        paddingVertical: 2,
-        borderRadius: 12,
-    },
-    badgeText: {
-        color: '#fff',
-        fontSize: 12,
-        fontWeight: '700',
     },
     arrowControls: {
         flexDirection: 'row',
@@ -365,12 +368,19 @@ const styles = StyleSheet.create({
         borderWidth: 1.5,
         borderColor: '#0094ff',
         borderStyle: 'dashed',
+        flexDirection: 'column',
         alignItems: 'center',
         justifyContent: 'center',
         padding: 12,
     },
     cameraIconWrapper: {
         marginBottom: 12,
+        width: 54,
+        height: 54,
+        borderRadius: 27,
+        backgroundColor: 'rgba(0, 148, 255, 0.12)',
+        alignItems: 'center',
+        justifyContent: 'center',
     },
     addPhotoText: {
         color: '#fff',
@@ -437,4 +447,4 @@ const styles = StyleSheet.create({
         width: SCREEN_WIDTH * 0.94,
         height: '80%',
     },
-});
+});

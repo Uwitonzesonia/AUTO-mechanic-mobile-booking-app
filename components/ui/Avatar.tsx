@@ -1,5 +1,6 @@
 import React from "react";
 import { Image, View, StyleSheet, StyleProp, ViewStyle, ImageStyle } from "react-native";
+import { Ionicons } from "@react-native-vector-icons/ionicons";
 
 export interface AvatarProps {
     imageUrl?: string;
@@ -17,32 +18,36 @@ export const Avatar = ({
     imageUrl,
     avatarSize = 100,
     avatarBorderRadius = 50,
-    avatarBackgroundColor = "transparent",
+    avatarBackgroundColor = "rgba(0, 148, 255, 0.12)",
     avatarBorderColor = "transparent",
     avatarBorderWidth = 0,
     style,
     imageStyle,
     children,
 }: AvatarProps) => {
-    const dynamicStyles = {
+    const containerStyle: ViewStyle = {
         width: avatarSize,
         height: avatarSize,
         borderRadius: avatarBorderRadius,
         backgroundColor: avatarBackgroundColor,
         borderColor: avatarBorderColor,
         borderWidth: avatarBorderWidth,
+        overflow: "hidden",
+        alignItems: "center",
+        justifyContent: "center",
     };
 
     return (
-        <View style={[styles.container, { backgroundColor: avatarBackgroundColor }, style]}>
+        <View style={[containerStyle, style]}>
             {imageUrl && imageUrl.trim() !== "" ? (
                 <Image
                     source={{ uri: imageUrl }}
-                    style={[styles.image, dynamicStyles, imageStyle]}
+                    style={[styles.image, imageStyle]}
+                    resizeMode="cover"
                 />
             ) : (
-                <View style={[dynamicStyles, styles.placeholder]}>
-                    {children}
+                <View style={styles.placeholder}>
+                    {children || <Ionicons name="person" size={avatarSize * 0.5} color="#0094ff" />}
                 </View>
             )}
         </View>
@@ -50,14 +55,14 @@ export const Avatar = ({
 };
 
 const styles = StyleSheet.create({
-    container: {
-        alignItems: "center",
-        justifyContent: "center",
-    },
     image: {
+        width: "100%",
+        height: "100%",
         resizeMode: "cover",
     },
     placeholder: {
+        width: "100%",
+        height: "100%",
         alignItems: "center",
         justifyContent: "center",
     },
