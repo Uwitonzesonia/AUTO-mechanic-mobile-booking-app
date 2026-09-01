@@ -2,7 +2,6 @@ import React from "react";
 import {
     View,
     Text,
-    TouchableOpacity,
     StyleSheet,
     StyleProp,
     ViewStyle,
@@ -11,6 +10,7 @@ import {
 import {useNavigation, useRouter} from "expo-router";
 import {Ionicons} from "@react-native-vector-icons/ionicons";
 import {DrawerActions} from "expo-router/react-navigation";
+import {Button} from "@/components/ui";
 
 export interface CustomHeaderProps {
     title?: string | React.ReactNode;
@@ -81,29 +81,29 @@ export default function CustomHeader(
 
         if (showBackButton) {
             return (
-                <TouchableOpacity
+                <Button
+                    type="ghost"
+                    size="custom"
                     onPress={handleBackPress}
                     style={styles.iconButton}
                     activeOpacity={0.7}
-                    accessibilityRole="button"
                     accessibilityLabel="Go back"
-                >
-                    <Ionicons name="chevron-back" size={20} color={tintColor}/>
-                </TouchableOpacity>
+                    icon={<Ionicons name="chevron-back" size={20} color={tintColor}/>}
+                />
             );
         }
 
         if (showMenuButton) {
             return (
-                <TouchableOpacity
+                <Button
+                    type="ghost"
+                    size="custom"
                     onPress={handleMenuPress}
                     style={styles.iconButton}
                     activeOpacity={0.7}
-                    accessibilityRole="button"
                     accessibilityLabel="Open navigation menu"
-                >
-                    <Ionicons name="menu" size={20} color={tintColor}/>
-                </TouchableOpacity>
+                    icon={<Ionicons name="menu" size={20} color={tintColor}/>}
+                />
             );
         }
 

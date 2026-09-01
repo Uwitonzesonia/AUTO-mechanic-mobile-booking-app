@@ -1,7 +1,7 @@
 import { User } from "firebase/auth";
 import { ErrorType } from "@/types/general";
 
-export type UserRole = "customer" | "mechanic" | "admin";
+export type UserRole = "customer" | "mechanic" | "admin" | "entrepreneur";
 
 export interface UserProfile {
     uid: string;

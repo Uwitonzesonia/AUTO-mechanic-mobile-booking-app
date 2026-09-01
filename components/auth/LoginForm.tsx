@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button } from "@/components/ui";
 import { UseAuthFormReturn } from "@/types/auth";
@@ -64,12 +64,13 @@ export const LoginForm: React.FC<LoginFormProps> = ({
                 />
 
                 <View style={styles.forgotPasswordRow}>
-                    <TouchableOpacity
+                    <Button
+                        type="link"
+                        title="Forgot password?"
+                        textStyle={styles.forgotPasswordLink}
                         onPress={() => router.push("/(auth)/forgot-password")}
                         disabled={isLoading}
-                    >
-                        <Text style={styles.forgotPasswordLink}>Forgot password?</Text>
-                    </TouchableOpacity>
+                    />
                 </View>
             </View>
 

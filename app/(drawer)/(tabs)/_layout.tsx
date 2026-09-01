@@ -2,8 +2,9 @@ import {Redirect, Tabs} from 'expo-router';
 import {useAuth} from "@/hooks/useAuth";
 import React from "react";
 import {GarageIcon, HomeIcon, ProfileIcon, TabIconProps, WalletIcon, WrenchIcon} from "@/utils/tabsIcons";
-import {Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Image, StyleSheet, Text, View} from "react-native";
 import CustomHeader from "@/components/navigations/CustomHeader";
+import {Button} from "@/components/ui";
 
 export type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
@@ -43,8 +44,10 @@ export function CustomTabBar({state, navigation}: BottomTabBarProps) {
                     if (isCenter) {
                         // The raised, filled circular button — rendered outside the flat row
                         return (
-                            <TouchableOpacity
+                            <Button
                                 key={route.key}
+                                type="custom"
+                                size="custom"
                                 onPress={onPress}
                                 style={styles.centerButton}
                                 activeOpacity={0.85}
@@ -54,13 +57,15 @@ export function CustomTabBar({state, navigation}: BottomTabBarProps) {
                                     color={isFocused ? "#ffffff" : "#999999"}
                                     size={24}
                                 />
-                            </TouchableOpacity>
+                            </Button>
                         );
                     }
 
                     return (
-                        <TouchableOpacity
+                        <Button
                             key={route.key}
+                            type="custom"
+                            size="custom"
                             onPress={onPress}
                             style={styles.tabItem}
                             activeOpacity={0.7}
@@ -70,7 +75,7 @@ export function CustomTabBar({state, navigation}: BottomTabBarProps) {
                                 color={isFocused ? "#ffffff" : "#666666"}
                                 size={22}
                             />
-                        </TouchableOpacity>
+                        </Button>
                     );
                 })}
             </View>
@@ -96,7 +101,9 @@ export default function TabLayout() {
                     <CustomHeader
                         title={props?.options?.title || props?.route?.name || "Home"}
                         rightAction={
-                            <TouchableOpacity
+                            <Button
+                                type="custom"
+                                size="custom"
                                 onPress={() => props.navigation.navigate("profile")}
                                 style={styles.profileHeaderButton}
                                 activeOpacity={0.7}
@@ -117,7 +124,7 @@ export default function TabLayout() {
                                 <Text style={styles.profileHeaderName} numberOfLines={2}>
                                     {displayName}
                                 </Text>
-                            </TouchableOpacity>
+                            </Button>
                         }
                     />
             }}

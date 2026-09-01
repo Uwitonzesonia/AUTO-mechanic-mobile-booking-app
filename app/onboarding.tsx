@@ -5,7 +5,6 @@ import {
     ScrollView,
     StyleSheet,
     Text,
-    TouchableOpacity,
     View,
 } from "react-native";
 import {LinearGradient} from "expo-linear-gradient";
@@ -105,10 +104,11 @@ export default function OnboardingScreen() {
                                 <View style={styles.bottomSection}>
                                     <View style={styles.dotRow}>
                                         {SLIDES.map((slide, index) => (
-                                            <TouchableOpacity
+                                            <Button
                                                 key={slide.id || index}
+                                                type="custom"
+                                                size="custom"
                                                 onPress={() => handleDotPress(index)}
-                                                accessibilityRole="button"
                                                 accessibilityLabel={`Go to slide ${index + 1}`}
                                                 hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
                                                 style={[

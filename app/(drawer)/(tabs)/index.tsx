@@ -1,9 +1,10 @@
-import {Button, StyleSheet, TouchableOpacity} from 'react-native';
+import {StyleSheet} from 'react-native';
 import {Text, View} from '@/components/Themed';
 import {useAuth} from "@/hooks/useAuth";
 import {Ionicons} from "@react-native-vector-icons/ionicons";
 import {useNavigation} from "expo-router";
 import {DrawerActions} from "expo-router/react-navigation";
+import {Button} from "@/components/ui";
 
 export default function HomeScreen() {
     const {logout, userProfile, user} = useAuth();
@@ -11,15 +12,18 @@ export default function HomeScreen() {
 
     return (
         <View style={styles.container}>
-            <Text>Home Screen</Text>
-            <TouchableOpacity
-                onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
-            >
-                <Ionicons name="menu" size={24} color="white"/>
-            </TouchableOpacity>
+            <Text style={styles.title}>Home Screen</Text>
             <Button
-                title={"Logout"}
+                type="ghost"
+                size="icon"
+                icon={<Ionicons name="menu" size={24} color="white"/>}
+                onPress={() => navigation.dispatch(DrawerActions.openDrawer())}
+            />
+            <Button
+                title="Logout"
+                variant="danger"
                 onPress={logout}
+                style={styles.logoutBtn}
             />
             {user && (
                 <>
@@ -36,5 +40,13 @@ const styles = StyleSheet.create({
         flex: 1,
         alignItems: 'center',
         justifyContent: 'center',
+        gap: 16,
+    },
+    title: {
+        fontSize: 18,
+        fontWeight: 'bold',
+    },
+    logoutBtn: {
+        minWidth: 120,
     },
 });

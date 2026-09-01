@@ -3,10 +3,10 @@ import {
     StyleSheet,
     TextInput,
     TextInputProps,
-    TouchableOpacity,
     View,
 } from "react-native";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
+import { Button } from "@/components/ui/Button";
 
 export interface AuthTextInputProps extends TextInputProps {
     isError?: boolean;
@@ -44,19 +44,21 @@ export const AuthPasswordInput = forwardRef<TextInput, AuthPasswordInputProps>(
                     style={[styles.passwordInput, style]}
                     {...props}
                 />
-                <TouchableOpacity
+                <Button
+                    type="ghost"
+                    size="custom"
                     style={styles.eyeBtn}
                     onPress={onToggleShowPassword}
                     hitSlop={{ top: 10, bottom: 10, left: 10, right: 10 }}
-                    accessibilityRole="button"
                     accessibilityLabel={showPassword ? "Hide password" : "Show password"}
-                >
-                    <Ionicons
-                        name={showPassword ? "eye-outline" : "eye-off-outline"}
-                        size={19}
-                        color="rgba(255, 255, 255, 0.6)"
-                    />
-                </TouchableOpacity>
+                    icon={
+                        <Ionicons
+                            name={showPassword ? "eye-outline" : "eye-off-outline"}
+                            size={19}
+                            color="rgba(255, 255, 255, 0.6)"
+                        />
+                    }
+                />
             </View>
         );
     }

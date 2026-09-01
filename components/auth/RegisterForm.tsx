@@ -1,5 +1,5 @@
 import React, { useRef } from "react";
-import { StyleSheet, Text, TextInput, TouchableOpacity, View } from "react-native";
+import { StyleSheet, Text, TextInput, View } from "react-native";
 import { useRouter } from "expo-router";
 import { Button } from "@/components/ui";
 import { UseAuthFormReturn } from "@/types/auth";
@@ -139,13 +139,14 @@ export const RegisterForm: React.FC<RegisterFormProps> = ({
                     onPress={() => router.push("/(auth)/login")}
                     disabled={isLoading}
                 />
-                <TouchableOpacity
+                <Button
+                    type="link"
+                    title="SIGN ON AS AN AUTOHELP"
                     style={styles.autohelpLink}
+                    textStyle={styles.capsLink}
                     onPress={() => router.push("/(auth)/login")}
                     disabled={isLoading}
-                >
-                    <Text style={styles.capsLink}>SIGN ON AS AN AUTOHELP</Text>
-                </TouchableOpacity>
+                />
             </View>
         </>
     );
