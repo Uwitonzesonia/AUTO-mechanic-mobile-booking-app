@@ -86,26 +86,62 @@ export function getNearbyMechanics(
     return typeof limit === "number" ? localized.slice(0, limit) : localized;
 }
 
+let cachedUserCoords: UserCoordinates | null = null;
+
+export function getCachedUserLocation(): UserCoordinates | null {
+    return cachedUserCoords;
+}
+
+export function setCachedUserLocation(coords: UserCoordinates | null): void {
+    cachedUserCoords = coords;
+}
+
 /**
- * Request location permissions and fetch current device coordinates
+ * Request location permissions and fetch current device coordinates.
+ * Queries last known position first for instant responsiveness, then current position.
  */
 export async function getCurrentUserLocation(): Promise<UserCoordinates | null> {
     try {
-        const { status } = await Location.requestForegroundPermissionsAsync();
+        let { status } = await Location.getForegroundPermissionsAsync();
+        if (status !== "granted") {
+            const permissionRes = await Location.requestForegroundPermissionsAsync();
+            status = permissionRes.status;
+        }
+
         if (status !== "granted") {
             return null;
+        }
+
+        // Try getting last known position first for quick responsiveness
+        try {
+            const lastKnown = await Location.getLastKnownPositionAsync({});
+            if (lastKnown?.coords) {
+                const quickCoords: UserCoordinates = {
+                    latitude: lastKnown.coords.latitude,
+                    longitude: lastKnown.coords.longitude,
+                };
+                cachedUserCoords = quickCoords;
+            }
+        } catch {
+            // Ignore and proceed to getCurrentPositionAsync
         }
 
         const position = await Location.getCurrentPositionAsync({
             accuracy: Location.Accuracy.Balanced,
         });
 
-        return {
-            latitude: position.coords.latitude,
-            longitude: position.coords.longitude,
-        };
+        if (position?.coords) {
+            const freshCoords: UserCoordinates = {
+                latitude: position.coords.latitude,
+                longitude: position.coords.longitude,
+            };
+            cachedUserCoords = freshCoords;
+            return freshCoords;
+        }
+
+        return cachedUserCoords;
     } catch (error) {
         console.warn("Could not retrieve user location:", error);
-        return null;
+        return cachedUserCoords;
     }
 }

@@ -1,18 +1,21 @@
 import React, { useEffect } from "react";
 import { Image, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
+import Svg, { Image as SvgImage, Defs, ClipPath, Circle } from "react-native-svg";
 import type { Mechanic } from "@/types/mechanic";
 
 interface MechanicMapMarkerProps {
     mechanic: Mechanic;
     isSelected?: boolean;
     style?: StyleProp<ViewStyle>;
+    onImageLoad?: () => void;
 }
 
 export const MechanicMapMarker: React.FC<MechanicMapMarkerProps> = ({
     mechanic,
     isSelected = false,
     style,
+    onImageLoad,
 }) => {
     const profileImg =
         mechanic.profileImage ||
@@ -52,11 +55,34 @@ export const MechanicMapMarker: React.FC<MechanicMapMarkerProps> = ({
                 {/* 2. Direct Profile Image in Center of Pin Head */}
                 <View style={styles.avatarWrapper}>
                     {profileImg ? (
-                        <Image
-                            source={{ uri: profileImg }}
-                            style={styles.avatarImage}
-                            resizeMode="cover"
-                        />
+                        <>
+                            {/* SVG-based image renderer for Fabric / Android Canvas compatibility */}
+                            <Svg width={25} height={25} viewBox="0 0 25 25" style={StyleSheet.absoluteFill}>
+                                <Defs>
+                                    <ClipPath id={`clip-${mechanic.id}`}>
+                                        <Circle cx="12.5" cy="12.5" r="12.5" />
+                                    </ClipPath>
+                                </Defs>
+                                <SvgImage
+                                    href={{ uri: profileImg }}
+                                    width="25"
+                                    height="25"
+                                    preserveAspectRatio="xMidYMid slice"
+                                    clipPath={`url(#clip-${mechanic.id})`}
+                                    onLoad={() => onImageLoad?.()}
+                                />
+                            </Svg>
+
+                            {/* Standard Native Image */}
+                            <Image
+                                source={{ uri: profileImg }}
+                                style={styles.avatarImage}
+                                resizeMode="cover"
+                                fadeDuration={0}
+                                onLoad={() => onImageLoad?.()}
+                                onError={() => onImageLoad?.()}
+                            />
+                        </>
                     ) : (
                         <Text style={styles.fallbackInitial}>{initial}</Text>
                     )}
@@ -133,6 +159,7 @@ const styles = StyleSheet.create({
     avatarWrapper: {
         position: "absolute",
         top: 5,
+        alignSelf: "center",
         width: 28,
         height: 28,
         borderRadius: 14,
@@ -141,9 +168,7 @@ const styles = StyleSheet.create({
         borderColor: "#ffffff",
         alignItems: "center",
         justifyContent: "center",
-        overflow: "hidden",
         zIndex: 50,
-        elevation: 20,
     },
     avatarImage: {
         width: 25,

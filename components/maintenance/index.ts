@@ -1,4 +1,4 @@
-export * from './modal/ParallelogramButton';
+export * from './ParallelogramButton';
 export * from './modal/RepairLocationTimeline';
 export * from './modal/RepairLocationQA';
 export * from './RepairLocationModal';

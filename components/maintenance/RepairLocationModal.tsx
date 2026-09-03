@@ -10,9 +10,10 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@react-native-vector-icons/ionicons';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { Button } from '@/components/ui';
+import { getCurrentUserLocation } from '@/utils/location';
 import { RepairLocationTimeline } from './modal/RepairLocationTimeline';
 import { RepairLocationQA } from './modal/RepairLocationQA';
-import { ParallelogramButton } from './modal/ParallelogramButton';
+import { ParallelogramButton } from './ParallelogramButton';
 
 export interface RepairLocationModalProps {
     visible: boolean;
@@ -36,6 +37,12 @@ export function RepairLocationModal({
     const [meetUpLocation, setMeetUpLocation] = useState('Chancellor Place, Platt Halls');
     const [selectedCar, setSelectedCar] = useState('Toyota avalon 2016');
     const [repairCategory, setRepairCategory] = useState('Chancellor Place, Platt Halls');
+
+    React.useEffect(() => {
+        if (visible) {
+            getCurrentUserLocation().catch(() => {});
+        }
+    }, [visible]);
 
     const handleStartSearch = () => {
         if (onStartSearch) {
