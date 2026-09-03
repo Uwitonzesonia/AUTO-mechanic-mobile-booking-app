@@ -284,8 +284,8 @@ const styles = StyleSheet.create({
         alignItems: "center",
     },
     serviceSelectedButton: {
-        borderColor: "#0094FF",
-        backgroundColor: "rgba(0, 148, 255, 0.1)",
+        borderColor: "#FFFFFF",
+        backgroundColor: "rgba(255, 255, 255, 0.12)",
     },
     serviceButtonText: {
         fontSize: 12,
@@ -295,7 +295,7 @@ const styles = StyleSheet.create({
         includeFontPadding: false,
     },
     serviceSelectedText: {
-        color: "#0094FF",
+        color: "#FFFFFF",
         fontWeight: "700",
     },
     /* Section 3 */
@@ -358,7 +358,7 @@ const styles = StyleSheet.create({
     gearsReadyText: {
         fontSize: 13.5,
         fontWeight: "700",
-        color: "#0094FF",
+        color: "#FFFFFF",
         letterSpacing: 0.2,
     },
 });

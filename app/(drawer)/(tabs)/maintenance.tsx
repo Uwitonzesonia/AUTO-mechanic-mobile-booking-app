@@ -1,11 +1,12 @@
 import React, { useLayoutEffect, useState, useRef, useEffect, useCallback } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Image } from "react-native";
+import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Image, Alert } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useNavigation, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
 import BottomCard from "@/components/maintenance/BottomCard";
 import { UserLocationRadarMarker } from "@/components/maintenance/UserLocationRadarMarker";
 import { MechanicMapMarker } from "@/components/maintenance/MechanicMapMarker";
+import { MechanicDetailCard } from "@/components/maintenance/MechanicDetailCard";
 import { TransparentHeaderCard } from "@/components/maintenance/TransparentHeaderCard";
 import { DARK_MAP_STYLE } from "@/constants/mapStyle";
 import { useUserLocation } from "@/hooks/useUserLocation";
@@ -101,9 +102,10 @@ export default function MaintenanceScreen() {
     }>();
     const mapRef = useRef<MapView | null>(null);
 
-    // Search state
+    // Search state & detail modal state
     const [isSearching, setIsSearching] = useState(true);
     const [selectedMechanic, setSelectedMechanic] = useState<Mechanic | null>(null);
+    const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
 
     // Fetch user location and get 5 closest mechanics relative to user
     const { userCoords, nearbyMechanics, hasPermission, refreshLocation } = useUserLocation(5);
@@ -121,6 +123,7 @@ export default function MaintenanceScreen() {
             prevSearchTriggerRef.current = params.searchTrigger;
             setIsSearching(true);
             setSelectedMechanic(null);
+            setShowDetailModal(false);
             refreshLocation();
 
             if (mapRef.current && userCoords) {
@@ -137,20 +140,75 @@ export default function MaintenanceScreen() {
         }
     }, [params.searchTrigger, refreshLocation, userCoords]);
 
-    // When searching completes, auto-select the closest mechanic
+    // When searching completes, reveal mechanics and allow selection
     const handleSearchComplete = useCallback(() => {
         setIsSearching(false);
-        if (nearbyMechanics.length > 0) {
-            setSelectedMechanic(nearbyMechanics[0]);
-        }
-    }, [nearbyMechanics]);
+        setShowDetailModal(false);
+        setSelectedMechanic(null);
+    }, []);
 
-    // When nearby mechanics are ready and not currently searching, select the closest one by default
-    useEffect(() => {
-        if (!isSearching && nearbyMechanics.length > 0 && !selectedMechanic) {
-            setSelectedMechanic(nearbyMechanics[0]);
+    // When a mechanic marker is clicked on the map:
+    // 1. Hide other mechanics and their avatars
+    // 2. Center map camera on clicked mechanic
+    // 3. Show MechanicDetailCard modal above BottomCard
+    const handleSelectMechanic = useCallback((mechanic: Mechanic) => {
+        setSelectedMechanic(mechanic);
+        setShowDetailModal(true);
+
+        const lat = mechanic.current_location?.lat ?? mechanic.location?.lat;
+        const lon = mechanic.current_location?.lon ?? mechanic.location?.lon;
+        if (mapRef.current && lat !== undefined && lon !== undefined) {
+            mapRef.current.animateToRegion(
+                {
+                    latitude: lat,
+                    longitude: lon,
+                    latitudeDelta: 0.035,
+                    longitudeDelta: 0.035,
+                },
+                500
+            );
         }
-    }, [isSearching, nearbyMechanics, selectedMechanic]);
+    }, []);
+
+    // Close detail modal and show all mechanics again
+    const handleCloseDetail = useCallback(() => {
+        setShowDetailModal(false);
+        setSelectedMechanic(null);
+    }, []);
+
+    // Re-Search button: restart radar search
+    const handleResearch = useCallback(() => {
+        setShowDetailModal(false);
+        setSelectedMechanic(null);
+        setIsSearching(true);
+        refreshLocation();
+
+        if (mapRef.current && userCoords) {
+            mapRef.current.animateToRegion(
+                {
+                    latitude: userCoords.latitude,
+                    longitude: userCoords.longitude,
+                    latitudeDelta: 0.05,
+                    longitudeDelta: 0.05,
+                },
+                800
+            );
+        }
+    }, [refreshLocation, userCoords]);
+
+    // Confirm button: confirm selected mechanic
+    const handleConfirm = useCallback((mechanic: Mechanic) => {
+        Alert.alert(
+            "AutoExpert Confirmed!",
+            `${mechanic.names || "Mechanic"} has been notified and is preparing to travel to your location.`,
+            [
+                {
+                    text: "OK",
+                    style: "default",
+                },
+            ]
+        );
+    }, []);
 
     // Pre-fetch mechanic avatar images as soon as nearby mechanics are loaded
     useEffect(() => {
@@ -216,20 +274,35 @@ export default function MaintenanceScreen() {
                             <UserLocationRadarMarker isSearching={isSearching} />
                         </Marker>
 
-                        {/* 5 Closest Mechanics: keep mounted with opacity to avoid native marker duplicates */}
-                        {nearbyMechanics.map((mechanic) => (
-                            <MechanicMarker
-                                key={`mechanic-marker-${mechanic.id}`}
-                                mechanic={mechanic}
-                                isSelected={selectedMechanic?.id === mechanic.id}
-                                onPress={() => setSelectedMechanic(mechanic)}
-                                opacity={isSearching ? 0 : 1}
-                            />
-                        ))}
+                        {/* 5 Closest Mechanics: hide other mechanics and their avatar on click */}
+                        {nearbyMechanics.map((mechanic) => {
+                            const isVisible =
+                                !isSearching &&
+                                (!showDetailModal || selectedMechanic?.id === mechanic.id);
+
+                            return (
+                                <MechanicMarker
+                                    key={`mechanic-marker-${mechanic.id}`}
+                                    mechanic={mechanic}
+                                    isSelected={selectedMechanic?.id === mechanic.id}
+                                    onPress={() => handleSelectMechanic(mechanic)}
+                                    opacity={isVisible ? 1 : 0}
+                                />
+                            );
+                        })}
                     </MapView>
 
-                    {/* Bottom Card Overlay */}
+                    {/* Bottom Card Overlay & Mechanic Detail Modal */}
                     <View style={styles.bottomContainer} pointerEvents="box-none">
+                        {showDetailModal && selectedMechanic && (
+                            <MechanicDetailCard
+                                mechanic={selectedMechanic}
+                                distance={selectedMechanic.current_location?.distanceKm}
+                                onResearch={handleResearch}
+                                onConfirm={handleConfirm}
+                                onClose={handleCloseDetail}
+                            />
+                        )}
                         <BottomCard
                             key={params.searchTrigger || "initial-search"}
                             isSearching={isSearching}
@@ -269,9 +342,10 @@ const styles = StyleSheet.create({
     },
     bottomContainer: {
         position: "absolute",
-        bottom: 4,
+        bottom: 8,
         left: 16,
         right: 16,
+        gap: 8,
     },
     centerFeedbackContainer: {
         flex: 1,

@@ -38,7 +38,7 @@ export const MechanicMapMarker: React.FC<MechanicMapMarkerProps> = ({
             {/* Top Distance Pill */}
             {distance !== undefined && (
                 <View style={[styles.distBadge, isSelected && styles.selectedDistBadge]}>
-                    <Text style={styles.distText}>{distance} km</Text>
+                    <Text style={[styles.distText, isSelected && styles.selectedDistText]}>{distance} km</Text>
                 </View>
             )}
 
@@ -134,8 +134,11 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
     selectedDistBadge: {
-        backgroundColor: "#0094FF",
+        backgroundColor: "#ffffff",
         borderColor: "#ffffff",
+    },
+    selectedDistText: {
+        color: "#000000",
     },
     distText: {
         color: "#ffffff",
@@ -188,7 +191,7 @@ const styles = StyleSheet.create({
         minWidth: 22,
         height: 18,
         borderRadius: 9,
-        backgroundColor: "#0094FF",
+        backgroundColor: "#ffffff",
         paddingHorizontal: 5,
         alignItems: "center",
         justifyContent: "center",
@@ -202,7 +205,7 @@ const styles = StyleSheet.create({
         zIndex: 60,
     },
     servicesBadgeText: {
-        color: "#ffffff",
+        color: "#000000",
         fontSize: 9.5,
         fontWeight: "800",
         textAlign: "center",

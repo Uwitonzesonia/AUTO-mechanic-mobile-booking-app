@@ -9,3 +9,4 @@ export * from './TransparentHeaderCard';
 export * from './SlideToCancelButton';
 export * from './MechanicMapMarker';
 export * from './UserLocationRadarMarker';
+export * from './MechanicDetailCard';
