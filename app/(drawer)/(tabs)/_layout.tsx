@@ -22,11 +22,19 @@ const ICONS: Record<string, React.FC<TabIconProps>> = {
     Profile: ProfileIcon,
 };
 
-export function CustomTabBar({
-    state,
-    navigation,
-    onOpenRepairModal,
-}: BottomTabBarProps & { onOpenRepairModal: () => void }) {
+export function CustomTabBar(
+    {
+        state,
+        navigation,
+        onOpenRepairModal,
+    }: BottomTabBarProps & { onOpenRepairModal: () => void }) {
+
+    const currentRoute = state.routes[state.index];
+
+    if (currentRoute.name === "maintenance") {
+        return null;
+    }
+
     return (
         <View style={styles.wrapper}>
             <View style={styles.bar}>

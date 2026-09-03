@@ -1,4 +1,4 @@
-import React from "react";
+import React, { useState } from "react";
 import { Image, View, StyleSheet, StyleProp, ViewStyle, ImageStyle } from "react-native";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
 
@@ -12,6 +12,7 @@ export interface AvatarProps {
     style?: StyleProp<ViewStyle>;
     imageStyle?: StyleProp<ImageStyle>;
     children?: React.ReactNode;
+    onLoad?: () => void;
 }
 
 export const Avatar = ({
@@ -24,7 +25,12 @@ export const Avatar = ({
     style,
     imageStyle,
     children,
+    onLoad,
 }: AvatarProps) => {
+    const [hasError, setHasError] = useState(false);
+
+    const innerSize = avatarSize - avatarBorderWidth * 2;
+
     const containerStyle: ViewStyle = {
         width: avatarSize,
         height: avatarSize,
@@ -35,31 +41,47 @@ export const Avatar = ({
         overflow: "hidden",
         alignItems: "center",
         justifyContent: "center",
+        position: "relative",
     };
+
+    const hasValidUrl = imageUrl && imageUrl.trim() !== "" && !hasError;
 
     return (
         <View style={[containerStyle, style]}>
-            {imageUrl && imageUrl.trim() !== "" ? (
+            {/* Fallback Placeholder / Initial */}
+            <View style={[styles.placeholder, { borderRadius: avatarBorderRadius }]}>
+                {children || <Ionicons name="person" size={avatarSize * 0.5} color="#0094ff" />}
+            </View>
+
+            {/* Network Image */}
+            {hasValidUrl ? (
                 <Image
                     source={{ uri: imageUrl }}
-                    style={[styles.image, imageStyle]}
+                    style={[
+                        {
+                            width: innerSize,
+                            height: innerSize,
+                            borderRadius: avatarBorderRadius,
+                            position: "absolute",
+                            top: 0,
+                            left: 0,
+                        },
+                        imageStyle,
+                    ]}
                     resizeMode="cover"
+                    onLoad={onLoad}
+                    onError={() => {
+                        setHasError(true);
+                    }}
                 />
-            ) : (
-                <View style={styles.placeholder}>
-                    {children || <Ionicons name="person" size={avatarSize * 0.5} color="#0094ff" />}
-                </View>
-            )}
+            ) : null}
         </View>
     );
 };
 
+export default Avatar;
+
 const styles = StyleSheet.create({
-    image: {
-        width: "100%",
-        height: "100%",
-        resizeMode: "cover",
-    },
     placeholder: {
         width: "100%",
         height: "100%",
@@ -67,5 +89,3 @@ const styles = StyleSheet.create({
         justifyContent: "center",
     },
 });
-
-export default Avatar;

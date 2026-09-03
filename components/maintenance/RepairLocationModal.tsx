@@ -10,9 +10,9 @@ import { SafeAreaView } from 'react-native-safe-area-context';
 import { Ionicons } from '@react-native-vector-icons/ionicons';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
 import { Button } from '@/components/ui';
-import { RepairLocationTimeline } from './RepairLocationTimeline';
-import { RepairLocationQA } from './RepairLocationQA';
-import { ParallelogramButton } from './ParallelogramButton';
+import { RepairLocationTimeline } from './modal/RepairLocationTimeline';
+import { RepairLocationQA } from './modal/RepairLocationQA';
+import { ParallelogramButton } from './modal/ParallelogramButton';
 
 export interface RepairLocationModalProps {
     visible: boolean;

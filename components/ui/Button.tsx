@@ -1,12 +1,13 @@
 import React from "react";
 import {
     ActivityIndicator,
+    Pressable,
+    PressableProps,
+    PressableStateCallbackType,
     StyleProp,
     StyleSheet,
     Text,
     TextStyle,
-    TouchableOpacity,
-    TouchableOpacityProps,
     View,
     ViewStyle,
 } from "react-native";
@@ -15,11 +16,11 @@ export type ButtonType = "primary" | "secondary" | "outline" | "ghost" | "danger
 export type ButtonSize = "sm" | "md" | "lg" | "icon" | "custom";
 export type IconPosition = "left" | "right";
 
-export interface ButtonProps extends TouchableOpacityProps {
+export interface ButtonProps extends Omit<PressableProps, "style" | "children"> {
     /** Text to display inside the button */
     title?: string;
     /** Children elements (can be string or React components) */
-    children?: React.ReactNode;
+    children?: React.ReactNode | ((state: PressableStateCallbackType) => React.ReactNode);
     /** Button appearance style preset (alias of variant) */
     type?: ButtonType;
     /** Button appearance style preset */
@@ -38,8 +39,10 @@ export interface ButtonProps extends TouchableOpacityProps {
     loadingColor?: string;
     /** Stretches the button to full width */
     fullWidth?: boolean;
+    /** Active opacity when pressed (default: 0.75) */
+    activeOpacity?: number;
     /** Additional style for the button container */
-    style?: StyleProp<ViewStyle>;
+    style?: StyleProp<ViewStyle> | ((state: PressableStateCallbackType) => StyleProp<ViewStyle>);
     /** Additional style for the text label */
     textStyle?: StyleProp<TextStyle>;
     /** Additional style for the icon wrapper */
@@ -193,6 +196,7 @@ export const Button: React.FC<ButtonProps> = ({
     style,
     textStyle,
     iconStyle,
+    android_ripple,
     ...restProps
 }) => {
     // Resolve variant / type (variant takes precedence, defaults to primary)
@@ -245,44 +249,64 @@ export const Button: React.FC<ButtonProps> = ({
             );
         }
 
-        return children;
+        return null;
     };
 
     const isComplexChildren =
         children !== undefined && typeof children !== "string" && !title && !icon;
 
     return (
-        <TouchableOpacity
-            activeOpacity={activeOpacity}
+        <Pressable
             disabled={isButtonDisabled}
-            style={[
-                styles.baseButton,
-                !isComplexChildren && styles.rowButton,
-                currentVariant.container,
-                currentSize.container,
-                fullWidth && styles.fullWidth,
-                isButtonDisabled && styles.disabled,
-                style,
-            ]}
+            android_ripple={
+                android_ripple !== undefined
+                    ? android_ripple
+                    : activeType !== "link" && activeType !== "ghost"
+                    ? { color: "rgba(255, 255, 255, 0.15)" }
+                    : undefined
+            }
+            style={(state) => {
+                const resolvedCustomStyle =
+                    typeof style === "function" ? style(state) : style;
+
+                return [
+                    styles.baseButton,
+                    !isComplexChildren && styles.rowButton,
+                    currentVariant.container,
+                    currentSize.container,
+                    fullWidth && styles.fullWidth,
+                    isButtonDisabled && styles.disabled,
+                    state.pressed && !isButtonDisabled && { opacity: activeOpacity },
+                    resolvedCustomStyle,
+                ];
+            }}
             accessibilityRole="button"
             accessibilityState={{ disabled: isButtonDisabled, busy: isButtonLoading }}
             {...restProps}
         >
-            {isButtonLoading ? (
-                <ActivityIndicator
-                    color={loadingColor || currentVariant.iconColor}
-                    size="small"
-                />
-            ) : isComplexChildren ? (
-                children
-            ) : (
-                <>
-                    {iconPosition === "left" && renderIcon()}
-                    {renderLabel()}
-                    {iconPosition === "right" && renderIcon()}
-                </>
-            )}
-        </TouchableOpacity>
+            {(state) => {
+                if (isButtonLoading) {
+                    return (
+                        <ActivityIndicator
+                            color={loadingColor || currentVariant.iconColor}
+                            size="small"
+                        />
+                    );
+                }
+
+                if (isComplexChildren) {
+                    return typeof children === "function" ? children(state) : children;
+                }
+
+                return (
+                    <>
+                        {iconPosition === "left" && renderIcon()}
+                        {renderLabel()}
+                        {iconPosition === "right" && renderIcon()}
+                    </>
+                );
+            }}
+        </Pressable>
     );
 };
 

@@ -75,7 +75,7 @@ export const NetworkProvider: React.FC<ChildrenProps> = ({ children }) => {
                 if (!isMounted) return;
 
                 const connected = state.isConnected ?? false;
-                const reachable = state.isInternetReachable ?? (connected ? true : false);
+                const reachable = state.isInternetReachable ?? (connected);
                 const currentType = state.type ?? Network.NetworkStateType.UNKNOWN;
 
                 setIsConnected(connected);
@@ -83,7 +83,7 @@ export const NetworkProvider: React.FC<ChildrenProps> = ({ children }) => {
                 setType(currentType);
 
                 const online = Boolean(
-                    connected === true && (reachable === true || reachable === undefined)
+                    connected && (reachable || reachable === undefined)
                 );
 
                 if (online) {
