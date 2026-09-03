@@ -172,9 +172,17 @@ export default function TabLayout() {
             <RepairLocationModal
                 visible={isRepairModalOpen}
                 onClose={() => setIsRepairModalOpen(false)}
-                onStartSearch={() => {
+                onStartSearch={(data) => {
                     setIsRepairModalOpen(false);
-                    router.push('/(drawer)/(tabs)/maintenance');
+                    router.push({
+                        pathname: '/(drawer)/(tabs)/maintenance',
+                        params: {
+                            searchTrigger: String(Date.now()),
+                            car: data?.selectedCar,
+                            location: data?.meetUpLocation,
+                            category: data?.repairCategory,
+                        },
+                    });
                 }}
             />
         </>

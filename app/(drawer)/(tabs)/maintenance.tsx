@@ -1,7 +1,7 @@
 import React, { useLayoutEffect, useState, useRef, useEffect, useCallback } from "react";
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Image } from "react-native";
 import MapView, { Marker } from "react-native-maps";
-import { useNavigation } from "expo-router";
+import { useNavigation, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
 import BottomCard from "@/components/maintenance/BottomCard";
 import { LocationArrowMarker } from "@/components/maintenance/LocationArrowMarker";
@@ -81,11 +81,20 @@ const MechanicMarker = React.memo(({ mechanic, isSelected, onPress }: MechanicMa
 
 export default function MaintenanceScreen() {
     const navigation = useNavigation();
+    const params = useLocalSearchParams<{
+        searchTrigger?: string;
+        car?: string;
+        location?: string;
+        category?: string;
+    }>();
     const mapRef = useRef<MapView | null>(null);
+
+    // Search state
+    const [isSearching, setIsSearching] = useState(true);
+    const [selectedMechanic, setSelectedMechanic] = useState<Mechanic | null>(null);
 
     // Fetch user location and get 5 closest mechanics relative to user
     const { userCoords, nearbyMechanics, hasPermission, refreshLocation } = useUserLocation(5);
-    const [selectedMechanic, setSelectedMechanic] = useState<Mechanic | null>(null);
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -93,12 +102,43 @@ export default function MaintenanceScreen() {
         });
     }, [navigation]);
 
-    // When nearby mechanics are ready, select the closest one by default
+    // Handle search trigger from RepairLocationModal
+    const prevSearchTriggerRef = useRef<string | undefined>(params.searchTrigger);
     useEffect(() => {
-        if (nearbyMechanics.length > 0 && !selectedMechanic) {
+        if (params.searchTrigger && params.searchTrigger !== prevSearchTriggerRef.current) {
+            prevSearchTriggerRef.current = params.searchTrigger;
+            setIsSearching(true);
+            setSelectedMechanic(null);
+            refreshLocation();
+
+            if (mapRef.current && userCoords) {
+                mapRef.current.animateToRegion(
+                    {
+                        latitude: userCoords.latitude,
+                        longitude: userCoords.longitude,
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05,
+                    },
+                    800
+                );
+            }
+        }
+    }, [params.searchTrigger, refreshLocation, userCoords]);
+
+    // When searching completes, auto-select the closest mechanic
+    const handleSearchComplete = useCallback(() => {
+        setIsSearching(false);
+        if (nearbyMechanics.length > 0) {
             setSelectedMechanic(nearbyMechanics[0]);
         }
-    }, [nearbyMechanics, selectedMechanic]);
+    }, [nearbyMechanics]);
+
+    // When nearby mechanics are ready and not currently searching, select the closest one by default
+    useEffect(() => {
+        if (!isSearching && nearbyMechanics.length > 0 && !selectedMechanic) {
+            setSelectedMechanic(nearbyMechanics[0]);
+        }
+    }, [isSearching, nearbyMechanics, selectedMechanic]);
 
     // Pre-fetch mechanic avatar images as soon as nearby mechanics are loaded
     useEffect(() => {
@@ -177,7 +217,11 @@ export default function MaintenanceScreen() {
 
                     {/* Bottom Card Overlay */}
                     <View style={styles.bottomContainer} pointerEvents="box-none">
-                        <BottomCard />
+                        <BottomCard
+                            key={params.searchTrigger || "initial-search"}
+                            isSearching={isSearching}
+                            onSearchComplete={handleSearchComplete}
+                        />
                     </View>
                 </>
             ) : hasPermission === false ? (

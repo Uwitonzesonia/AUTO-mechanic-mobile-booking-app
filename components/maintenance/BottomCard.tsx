@@ -66,6 +66,9 @@ export const BottomCard: React.FC<BottomCardProps> = ({
         }
     };
 
+    const onSearchCompleteRef = useRef(onSearchComplete);
+    onSearchCompleteRef.current = onSearchComplete;
+
     // Animate 4 progress bars sequentially when searching
     useEffect(() => {
         if (!isSearching) {
@@ -82,7 +85,7 @@ export const BottomCard: React.FC<BottomCardProps> = ({
                     clearInterval(interval);
                     setTimeout(() => {
                         setSearchDone(true);
-                        onSearchComplete?.();
+                        onSearchCompleteRef.current?.();
                     }, 400);
                     return 4;
                 }
@@ -91,7 +94,7 @@ export const BottomCard: React.FC<BottomCardProps> = ({
         }, 900);
 
         return () => clearInterval(interval);
-    }, [isSearching, onSearchComplete]);
+    }, [isSearching]);
 
     // Spin animation for gears when search completes
     useEffect(() => {

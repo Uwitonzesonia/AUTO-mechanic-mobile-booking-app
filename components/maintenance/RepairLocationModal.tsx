@@ -15,10 +15,16 @@ import { RepairLocationTimeline } from './modal/RepairLocationTimeline';
 import { RepairLocationQA } from './modal/RepairLocationQA';
 import { ParallelogramButton } from './ParallelogramButton';
 
+export interface RepairLocationData {
+    meetUpLocation?: string;
+    selectedCar?: string;
+    repairCategory?: string;
+}
+
 export interface RepairLocationModalProps {
     visible: boolean;
     onClose: () => void;
-    onStartSearch?: () => void;
+    onStartSearch?: (data?: RepairLocationData) => void;
     onPressLocation?: () => void;
     onPressVehicle?: () => void;
     onChooseOrAddVehicle?: () => void;
@@ -46,7 +52,11 @@ export function RepairLocationModal({
 
     const handleStartSearch = () => {
         if (onStartSearch) {
-            onStartSearch();
+            onStartSearch({
+                meetUpLocation,
+                selectedCar,
+                repairCategory,
+            });
         }
         onClose();
     };
