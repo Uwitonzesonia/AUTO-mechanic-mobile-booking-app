@@ -45,17 +45,18 @@ export function useUserLocation(mechanicsLimit: number = 5) {
             }
 
             // Fast path: check last known position first
+            let coordsToUse: UserCoordinates | null = null;
             try {
                 const lastKnown = await Location.getLastKnownPositionAsync({});
                 if (lastKnown?.coords && isMountedRef.current) {
-                    const coords: UserCoordinates = {
+                    coordsToUse = {
                         latitude: lastKnown.coords.latitude,
                         longitude: lastKnown.coords.longitude,
                     };
-                    setCachedUserLocation(coords);
-                    setUserCoords(coords);
+                    setCachedUserLocation(coordsToUse);
+                    setUserCoords(coordsToUse);
                     setNearbyMechanics(
-                        getNearbyMechanics(coords.latitude, coords.longitude, MOCK_MECHANICS, mechanicsLimit)
+                        getNearbyMechanics(coordsToUse.latitude, coordsToUse.longitude, MOCK_MECHANICS, mechanicsLimit)
                     );
                     setIsLoading(false);
                 }
@@ -69,15 +70,18 @@ export function useUserLocation(mechanicsLimit: number = 5) {
             });
 
             if (position?.coords && isMountedRef.current) {
-                const coords: UserCoordinates = {
+                const freshCoords: UserCoordinates = {
                     latitude: position.coords.latitude,
                     longitude: position.coords.longitude,
                 };
-                setCachedUserLocation(coords);
-                setUserCoords(coords);
-                setNearbyMechanics(
-                    getNearbyMechanics(coords.latitude, coords.longitude, MOCK_MECHANICS, mechanicsLimit)
-                );
+                setCachedUserLocation(freshCoords);
+                setUserCoords(freshCoords);
+                // Only initialize mechanics if they weren't initialized yet
+                if (!coordsToUse) {
+                    setNearbyMechanics(
+                        getNearbyMechanics(freshCoords.latitude, freshCoords.longitude, MOCK_MECHANICS, mechanicsLimit)
+                    );
+                }
             }
         } catch (error) {
             console.warn("Could not retrieve user location:", error);
@@ -92,7 +96,7 @@ export function useUserLocation(mechanicsLimit: number = 5) {
         isMountedRef.current = true;
         refreshLocation();
 
-        // Subscribe to real-time location updates
+        // Subscribe to real-time location updates for the user arrow only
         let subscription: Location.LocationSubscription | null = null;
         Location.getForegroundPermissionsAsync().then(({ status }) => {
             if (status === "granted" && isMountedRef.current) {
@@ -110,9 +114,7 @@ export function useUserLocation(mechanicsLimit: number = 5) {
                         };
                         setCachedUserLocation(coords);
                         setUserCoords(coords);
-                        setNearbyMechanics(
-                            getNearbyMechanics(coords.latitude, coords.longitude, MOCK_MECHANICS, mechanicsLimit)
-                        );
+                        // Do not regenerate mechanic coordinates on watch tick - mechanics are stationary!
                     }
                 ).then((sub) => {
                     subscription = sub;

@@ -4,7 +4,7 @@ import MapView, { Marker } from "react-native-maps";
 import { useNavigation, useLocalSearchParams } from "expo-router";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
 import BottomCard from "@/components/maintenance/BottomCard";
-import { LocationArrowMarker } from "@/components/maintenance/LocationArrowMarker";
+import { UserLocationRadarMarker } from "@/components/maintenance/UserLocationRadarMarker";
 import { MechanicMapMarker } from "@/components/maintenance/MechanicMapMarker";
 import { TransparentHeaderCard } from "@/components/maintenance/TransparentHeaderCard";
 import { DARK_MAP_STYLE } from "@/constants/mapStyle";
@@ -16,9 +16,10 @@ interface MechanicMarkerProps {
     mechanic: Mechanic;
     isSelected: boolean;
     onPress: () => void;
+    opacity?: number;
 }
 
-const MechanicMarker = React.memo(({ mechanic, isSelected, onPress }: MechanicMarkerProps) => {
+const MechanicMarker = React.memo(({ mechanic, isSelected, onPress, opacity = 1 }: MechanicMarkerProps) => {
     const [tracksViewChanges, setTracksViewChanges] = useState(true);
     const stopTrackingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isFirstRender = useRef(true);
@@ -46,6 +47,17 @@ const MechanicMarker = React.memo(({ mechanic, isSelected, onPress }: MechanicMa
         };
     }, []);
 
+    // Re-enable tracking temporarily when opacity transitions to 1 (visible) so snapshot captures cleanly
+    useEffect(() => {
+        if (opacity === 1) {
+            setTracksViewChanges(true);
+            const timer = setTimeout(() => {
+                setTracksViewChanges(false);
+            }, 600);
+            return () => clearTimeout(timer);
+        }
+    }, [opacity]);
+
     // Re-enable tracking temporarily when selection changes so scale and styles update
     useEffect(() => {
         if (isFirstRender.current) {
@@ -61,14 +73,14 @@ const MechanicMarker = React.memo(({ mechanic, isSelected, onPress }: MechanicMa
 
     return (
         <Marker
-            key={`mechanic-marker-${mechanic.id}`}
             identifier={`mechanic-marker-${mechanic.id}`}
             coordinate={{ latitude: lat, longitude: lon }}
             anchor={{ x: 0.5, y: 1 }}
             title={mechanic.names}
             description={`⭐ ${mechanic.rating} • Flat: $${mechanic.flat_fee}`}
-            onPress={onPress}
+            onPress={opacity > 0 ? onPress : undefined}
             tracksViewChanges={tracksViewChanges}
+            opacity={opacity}
         >
             <MechanicMapMarker
                 mechanic={mechanic}
@@ -192,25 +204,26 @@ export default function MaintenanceScreen() {
                             longitudeDelta: 0.05,
                         }}
                     >
-                        {/* User Location Arrow */}
+                        {/* User Location with White Border Circle (scaling up and down while searching, non-scaling after search) */}
                         <Marker
                             key="user-location-marker"
                             identifier="user-location-marker"
                             coordinate={userCoords}
                             anchor={{ x: 0.5, y: 0.5 }}
                             title="My Location"
-                            tracksViewChanges={false}
+                            tracksViewChanges={isSearching}
                         >
-                            <LocationArrowMarker size={28} />
+                            <UserLocationRadarMarker isSearching={isSearching} />
                         </Marker>
 
-                        {/* 5 Closest Mechanics with custom location-sharp + avatar + red dot marker */}
+                        {/* 5 Closest Mechanics: keep mounted with opacity to avoid native marker duplicates */}
                         {nearbyMechanics.map((mechanic) => (
                             <MechanicMarker
                                 key={`mechanic-marker-${mechanic.id}`}
                                 mechanic={mechanic}
                                 isSelected={selectedMechanic?.id === mechanic.id}
                                 onPress={() => setSelectedMechanic(mechanic)}
+                                opacity={isSearching ? 0 : 1}
                             />
                         ))}
                     </MapView>

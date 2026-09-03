@@ -174,7 +174,7 @@ export default function TabLayout() {
                 onClose={() => setIsRepairModalOpen(false)}
                 onStartSearch={(data) => {
                     setIsRepairModalOpen(false);
-                    router.push({
+                    router.navigate({
                         pathname: '/(drawer)/(tabs)/maintenance',
                         params: {
                             searchTrigger: String(Date.now()),
