@@ -1,7 +1,6 @@
 import { useEffect, useState, useCallback, useRef } from "react";
 import * as Location from "expo-location";
 import {
-    getCurrentUserLocation,
     getCachedUserLocation,
     setCachedUserLocation,
     getNearbyMechanics,

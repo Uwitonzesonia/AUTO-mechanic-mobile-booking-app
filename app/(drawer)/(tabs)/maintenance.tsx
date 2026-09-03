@@ -2,7 +2,6 @@ import React, { useLayoutEffect, useState, useRef, useEffect, useCallback } from
 import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Image } from "react-native";
 import MapView, { Marker } from "react-native-maps";
 import { useNavigation } from "expo-router";
-import { SafeAreaView } from "react-native-safe-area-context";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
 import BottomCard from "@/components/maintenance/BottomCard";
 import { LocationArrowMarker } from "@/components/maintenance/LocationArrowMarker";
@@ -85,7 +84,7 @@ export default function MaintenanceScreen() {
     const mapRef = useRef<MapView | null>(null);
 
     // Fetch user location and get 5 closest mechanics relative to user
-    const { userCoords, nearbyMechanics, isLoading, hasPermission, refreshLocation } = useUserLocation(5);
+    const { userCoords, nearbyMechanics, hasPermission, refreshLocation } = useUserLocation(5);
     const [selectedMechanic, setSelectedMechanic] = useState<Mechanic | null>(null);
 
     useLayoutEffect(() => {

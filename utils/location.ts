@@ -1,5 +1,5 @@
 import * as Location from "expo-location";
-import type { Mechanic } from "@/types/mechanic";
+import type {Mechanic} from "@/types/mechanic";
 
 export interface UserCoordinates {
     latitude: number;
@@ -116,11 +116,10 @@ export async function getCurrentUserLocation(): Promise<UserCoordinates | null> 
         try {
             const lastKnown = await Location.getLastKnownPositionAsync({});
             if (lastKnown?.coords) {
-                const quickCoords: UserCoordinates = {
+                cachedUserCoords = {
                     latitude: lastKnown.coords.latitude,
                     longitude: lastKnown.coords.longitude,
                 };
-                cachedUserCoords = quickCoords;
             }
         } catch {
             // Ignore and proceed to getCurrentPositionAsync
