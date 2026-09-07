@@ -1,4 +1,4 @@
-// app/Onboarding.tsx - FIXED
+
 import { useRouter } from "expo-router";
 import { useRef, useState } from "react";
 import {
@@ -17,7 +17,7 @@ import {
 
 const { width, height } = Dimensions.get("window");
 
-// Responsive sizes
+
 const isTablet = width >= 768;
 
 const SLIDES = [
