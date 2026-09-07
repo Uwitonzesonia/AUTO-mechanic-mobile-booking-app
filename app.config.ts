@@ -77,19 +77,6 @@ export default ({config}: ConfigContext): ExpoConfig => {
                     }
                 }
             ],
-            [
-                "expo-camera",
-                {
-                    cameraPermission: "Allow AUTO Mechanic to access your camera"
-                }
-            ],
-            [
-                "expo-media-library",
-                {
-                    photosPermission: "Allow AUTO Mechanic to access your photos",
-                    savePhotosPermission: "Allow AUTO Mechanic to save photos"
-                }
-            ],
             "expo-secure-store",
             [
                 "react-native-fbsdk-next",
