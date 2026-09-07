@@ -1,17 +1,17 @@
-import React, { useLayoutEffect, useState, useRef, useEffect, useCallback } from "react";
-import { StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Image, Alert } from "react-native";
-import MapView, { Marker } from "react-native-maps";
-import { useNavigation, useLocalSearchParams } from "expo-router";
-import { Ionicons } from "@react-native-vector-icons/ionicons";
+import React, {useLayoutEffect, useState, useRef, useEffect, useCallback} from "react";
+import {StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Image} from "react-native";
+import MapView, {Marker} from "react-native-maps";
+import {useNavigation, useLocalSearchParams, useRouter} from "expo-router";
+import {Ionicons} from "@react-native-vector-icons/ionicons";
 import BottomCard from "@/components/maintenance/BottomCard";
-import { UserLocationRadarMarker } from "@/components/maintenance/UserLocationRadarMarker";
-import { MechanicMapMarker } from "@/components/maintenance/MechanicMapMarker";
-import { MechanicDetailCard } from "@/components/maintenance/MechanicDetailCard";
-import { TransparentHeaderCard } from "@/components/maintenance/TransparentHeaderCard";
-import { DARK_MAP_STYLE } from "@/constants/mapStyle";
-import { useUserLocation } from "@/hooks/useUserLocation";
-import { LinearBgView } from "@/components/LinearBg";
-import type { Mechanic } from "@/types/mechanic";
+import {UserLocationRadarMarker} from "@/components/maintenance/UserLocationRadarMarker";
+import {MechanicMapMarker} from "@/components/maintenance/MechanicMapMarker";
+import {MechanicDetailCard} from "@/components/maintenance/MechanicDetailCard";
+import {TransparentHeaderCard} from "@/components/maintenance/TransparentHeaderCard";
+import {DARK_MAP_STYLE} from "@/constants/mapStyle";
+import {useUserLocation} from "@/hooks/useUserLocation";
+import {LinearBgView} from "@/components/LinearBg";
+import type {Mechanic} from "@/types/mechanic";
 
 interface MechanicMarkerProps {
     mechanic: Mechanic;
@@ -20,7 +20,7 @@ interface MechanicMarkerProps {
     opacity?: number;
 }
 
-const MechanicMarker = React.memo(({ mechanic, isSelected, onPress, opacity = 1 }: MechanicMarkerProps) => {
+const MechanicMarker = React.memo(({mechanic, isSelected, onPress, opacity = 1}: MechanicMarkerProps) => {
     const [tracksViewChanges, setTracksViewChanges] = useState(true);
     const stopTrackingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
     const isFirstRender = useRef(true);
@@ -75,8 +75,8 @@ const MechanicMarker = React.memo(({ mechanic, isSelected, onPress, opacity = 1 
     return (
         <Marker
             identifier={`mechanic-marker-${mechanic.id}`}
-            coordinate={{ latitude: lat, longitude: lon }}
-            anchor={{ x: 0.5, y: 1 }}
+            coordinate={{latitude: lat, longitude: lon}}
+            anchor={{x: 0.5, y: 1}}
             title={mechanic.names}
             description={`⭐ ${mechanic.rating} • Flat: $${mechanic.flat_fee}`}
             onPress={opacity > 0 ? onPress : undefined}
@@ -94,6 +94,7 @@ const MechanicMarker = React.memo(({ mechanic, isSelected, onPress, opacity = 1 
 
 export default function MaintenanceScreen() {
     const navigation = useNavigation();
+    const router = useRouter();
     const params = useLocalSearchParams<{
         searchTrigger?: string;
         car?: string;
@@ -108,7 +109,7 @@ export default function MaintenanceScreen() {
     const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
 
     // Fetch user location and get 5 closest mechanics relative to user
-    const { userCoords, nearbyMechanics, hasPermission, refreshLocation } = useUserLocation(5);
+    const {userCoords, nearbyMechanics, hasPermission, refreshLocation} = useUserLocation(5);
 
     useLayoutEffect(() => {
         navigation.setOptions({
@@ -197,18 +198,14 @@ export default function MaintenanceScreen() {
     }, [refreshLocation, userCoords]);
 
     // Confirm button: confirm selected mechanic
-    const handleConfirm = useCallback((mechanic: Mechanic) => {
-        Alert.alert(
-            "AutoExpert Confirmed!",
-            `${mechanic.names || "Mechanic"} has been notified and is preparing to travel to your location.`,
-            [
-                {
-                    text: "OK",
-                    style: "default",
-                },
-            ]
-        );
-    }, []);
+    const handleConfirm = (mechanic: Mechanic) => {
+        router.push({
+            pathname: "/(drawer)/(tabs)/maintenance/booking",
+            params: {
+                mechanicId: mechanic.id,
+            },
+        })
+    }
 
     // Pre-fetch mechanic avatar images as soon as nearby mechanics are loaded
     useEffect(() => {
@@ -216,7 +213,8 @@ export default function MaintenanceScreen() {
             nearbyMechanics.forEach((m) => {
                 const img = m.profileImage || (m as any).profile_image;
                 if (img) {
-                    Image.prefetch(img).catch(() => {});
+                    Image.prefetch(img).catch(() => {
+                    });
                 }
             });
         }
@@ -267,11 +265,11 @@ export default function MaintenanceScreen() {
                             key="user-location-marker"
                             identifier="user-location-marker"
                             coordinate={userCoords}
-                            anchor={{ x: 0.5, y: 0.5 }}
+                            anchor={{x: 0.5, y: 0.5}}
                             title="My Location"
                             tracksViewChanges={isSearching}
                         >
-                            <UserLocationRadarMarker isSearching={isSearching} />
+                            <UserLocationRadarMarker isSearching={isSearching}/>
                         </Marker>
 
                         {/* 5 Closest Mechanics: hide other mechanics and their avatar on click */}
@@ -299,7 +297,7 @@ export default function MaintenanceScreen() {
                                 mechanic={selectedMechanic}
                                 distance={selectedMechanic.current_location?.distanceKm}
                                 onResearch={handleResearch}
-                                onConfirm={handleConfirm}
+                                handleOnBooking={handleConfirm}
                                 onClose={handleCloseDetail}
                             />
                         )}
@@ -312,7 +310,7 @@ export default function MaintenanceScreen() {
                 </>
             ) : hasPermission === false ? (
                 <View style={styles.centerFeedbackContainer}>
-                    <Ionicons name="location-outline" size={56} color="#ef4444" />
+                    <Ionicons name="location-outline" size={56} color="#ef4444"/>
                     <Text style={styles.feedbackTitle}>Location Permission Needed</Text>
                     <Text style={styles.feedbackSubtitle}>
                         AUTO Mechanic requires your location to find mechanics near you.
@@ -327,7 +325,7 @@ export default function MaintenanceScreen() {
                 </View>
             ) : (
                 <View style={styles.centerFeedbackContainer}>
-                    <ActivityIndicator size="large" color="#ffffff" />
+                    <ActivityIndicator size="large" color="#ffffff"/>
                     <Text style={styles.loadingText}>Acquiring your location...</Text>
                 </View>
             )}

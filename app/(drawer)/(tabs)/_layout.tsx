@@ -14,7 +14,7 @@ const ICONS: Record<string, React.FC<TabIconProps>> = {
     Home: HomeIcon,
     garage: GarageIcon,
     Garage: GarageIcon,
-    maintenance: WrenchIcon,
+    "maintenance": WrenchIcon,
     Tools: WrenchIcon,
     wallet: WalletIcon,
     Wallet: WalletIcon,
@@ -40,7 +40,7 @@ export function CustomTabBar(
             <View style={styles.bar}>
                 {state.routes.map((route, index) => {
                     const isFocused = state.index === index;
-                    const isCenter = route.name === "maintenance" || route.name === "Tools";
+                    const isCenter = route.name === "maintenance";
                     const Icon = ICONS[route.name] || HomeIcon;
 
                     const onPress = () => {
@@ -158,7 +158,7 @@ export default function TabLayout() {
                 <Tabs.Screen name="garage" options={{title: "Garage"}}/>
                 <Tabs.Screen
                     name="maintenance"
-                    options={{title: "Maintenance"}}
+                    options={{title: "Maintenance", headerShown: false}}
                     listeners={{
                         tabPress: (e) => {
                             e.preventDefault();

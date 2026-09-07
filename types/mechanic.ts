@@ -23,4 +23,5 @@ export interface Mechanic {
     flat_fee?: number;
     consultation_fee?: number;
     updated_at?: string | Date;
+    telephone?: string
 }

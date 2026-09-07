@@ -1,4 +1,4 @@
-import React, { useEffect, useRef } from "react";
+import React, {useEffect, useRef} from "react";
 import {
     Animated,
     StyleProp,
@@ -7,30 +7,31 @@ import {
     View,
     ViewStyle,
 } from "react-native";
-import { Ionicons } from "@react-native-vector-icons/ionicons";
+import {Ionicons} from "@react-native-vector-icons/ionicons";
 import FontAwesome from "@react-native-vector-icons/fontawesome";
-import { BlurView } from "expo-blur";
-import { Avatar } from "@/components/ui/Avatar";
-import { Button } from "@/components/ui/Button";
-import type { Mechanic } from "@/types/mechanic";
+import {BlurView} from "expo-blur";
+import {Avatar} from "@/components/ui/Avatar";
+import {Button} from "@/components/ui/Button";
+import type {Mechanic} from "@/types/mechanic";
 
 export interface MechanicDetailCardProps {
     mechanic: Mechanic;
     distance?: number;
     onResearch?: () => void;
-    onConfirm?: (mechanic: Mechanic) => void;
+    handleOnBooking?: (mechanic: Mechanic) => void;
     onClose?: () => void;
     style?: StyleProp<ViewStyle>;
 }
 
-export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
-    mechanic,
-    distance,
-    onResearch,
-    onConfirm,
-    onClose,
-    style,
-}) => {
+export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = (
+    {
+        mechanic,
+        distance,
+        onResearch,
+        handleOnBooking,
+        onClose,
+        style,
+    }) => {
     const slideAnim = useRef(new Animated.Value(18)).current;
     const opacityAnim = useRef(new Animated.Value(0)).current;
 
@@ -80,7 +81,7 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                 styles.cardWrapper,
                 {
                     opacity: opacityAnim,
-                    transform: [{ translateY: slideAnim }],
+                    transform: [{translateY: slideAnim}],
                 },
                 style,
             ]}
@@ -104,7 +105,7 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                         >
                             <Text style={styles.avatarFallbackText}>{initial}</Text>
                         </Avatar>
-                        {mechanic.is_online !== false && <View style={styles.onlineBadge} />}
+                        {mechanic.is_online !== false && <View style={styles.onlineBadge}/>}
                     </View>
 
                     {/* 2. Name & Rating */}
@@ -114,7 +115,7 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                         </Text>
 
                         <View style={styles.ratingRow}>
-                            <Ionicons name="star" size={13} color="#FFB800" />
+                            <Ionicons name="star" size={13} color="#FFB800"/>
                             <Text style={styles.ratingText}>{rating}</Text>
                         </View>
                     </View>
@@ -124,7 +125,7 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                         <Button
                             variant="ghost"
                             size="icon"
-                            icon={<Ionicons name="close" size={16} color="#94A3B8" />}
+                            icon={<Ionicons name="close" size={16} color="#94A3B8"/>}
                             style={styles.closeBtn}
                             onPress={onClose}
                             accessibilityLabel="Close mechanic details"
@@ -159,7 +160,7 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                     <Button
                         variant="custom"
                         size="icon"
-                        icon={<FontAwesome name="refresh" size={20} color="#ffffff" />}
+                        icon={<FontAwesome name="refresh" size={20} color="#ffffff"/>}
                         style={styles.circleIconButton}
                         onPress={onResearch}
                         accessibilityLabel="Re-Search mechanics"
@@ -169,9 +170,9 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                     <Button
                         variant="custom"
                         size="icon"
-                        icon={<FontAwesome name="check" size={22} color="#ffffff" />}
+                        icon={<FontAwesome name="check" size={22} color="#ffffff"/>}
                         style={styles.circleIconButton}
-                        onPress={() => onConfirm?.(mechanic)}
+                        onPress={() => handleOnBooking?.(mechanic)}
                         accessibilityLabel={`Confirm ${mechanicName}`}
                     />
                 </View>
@@ -186,7 +187,7 @@ const styles = StyleSheet.create({
     cardWrapper: {
         borderRadius: 22,
         overflow: "hidden",
-               width: "75%",
+        width: "75%",
         alignSelf: "center",
         borderWidth: 1.2,
         borderColor: "rgba(255, 255, 255, 0.22)",
@@ -308,7 +309,7 @@ const styles = StyleSheet.create({
         alignItems: "center",
         justifyContent: "center",
         shadowColor: "#fd0d0d",
-        shadowOffset: { width: 0, height: 4 },
+        shadowOffset: {width: 0, height: 4},
         shadowOpacity: 0.45,
         shadowRadius: 6,
         elevation: 6,
