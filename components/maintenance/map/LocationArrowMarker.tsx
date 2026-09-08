@@ -1,5 +1,5 @@
 import React from "react";
-import { StyleProp, StyleSheet, View, ViewStyle } from "react-native";
+import {StyleProp, StyleSheet, View, ViewStyle} from "react-native";
 import FontAwesome from "@react-native-vector-icons/fontawesome";
 
 interface LocationArrowMarkerProps {
@@ -9,10 +9,10 @@ interface LocationArrowMarkerProps {
 }
 
 export const LocationArrowMarker: React.FC<LocationArrowMarkerProps> = ({
-    size = 28,
-    color = "#e40019",
-    style,
-}) => {
+                                                                            size = 28,
+                                                                            color = "#e40019",
+                                                                            style,
+                                                                        }) => {
     return (
         <View collapsable={false} style={[styles.container, style]}>
             <FontAwesome

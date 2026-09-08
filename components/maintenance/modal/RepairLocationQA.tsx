@@ -1,8 +1,8 @@
 import React from 'react';
-import { StyleSheet, Text, View } from 'react-native';
+import {StyleSheet, Text, View} from 'react-native';
 import MaterialDesignIcons from '@react-native-vector-icons/material-design-icons';
-import { Button } from '@/components/ui';
-import { DashedLine } from './DashedLine';
+import {Button} from '@/components/ui';
+import {DashedLine} from './DashedLine';
 
 export interface RepairLocationQAProps {
     meetUpLocation: string;
@@ -15,14 +15,14 @@ export interface RepairLocationQAProps {
 }
 
 export function RepairLocationQA({
-    meetUpLocation,
-    selectedCar,
-    repairCategory,
-    onPressLocation,
-    onPressVehicle,
-    onChooseOrAddVehicle,
-    onPressCategory,
-}: RepairLocationQAProps) {
+                                     meetUpLocation,
+                                     selectedCar,
+                                     repairCategory,
+                                     onPressLocation,
+                                     onPressVehicle,
+                                     onChooseOrAddVehicle,
+                                     onPressCategory,
+                                 }: RepairLocationQAProps) {
     return (
         <View style={styles.container}>
             {/* Section 1: Meet up point */}
@@ -38,7 +38,7 @@ export function RepairLocationQA({
                     <Text style={styles.aValue} numberOfLines={2}>
                         {meetUpLocation}
                     </Text>
-                    <DashedLine />
+                    <DashedLine/>
                 </Button>
             </View>
 
@@ -54,10 +54,10 @@ export function RepairLocationQA({
                     activeOpacity={0.7}
                 >
                     <View style={styles.carInfoRow}>
-                        <MaterialDesignIcons name="car-side" size={16} color="#ffffff" />
+                        <MaterialDesignIcons name="car-side" size={16} color="#ffffff"/>
                         <Text style={styles.carName}>{selectedCar}</Text>
                     </View>
-                    <DashedLine />
+                    <DashedLine/>
                 </Button>
 
                 {/* Separate Choose or Add Vehicle Button */}
@@ -85,7 +85,7 @@ export function RepairLocationQA({
                     <Text style={styles.aValue} numberOfLines={2}>
                         {repairCategory}
                     </Text>
-                    <DashedLine />
+                    <DashedLine/>
                 </Button>
             </View>
         </View>

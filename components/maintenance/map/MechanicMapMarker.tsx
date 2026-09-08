@@ -1,8 +1,8 @@
-import React, { useEffect } from "react";
-import { Image, StyleProp, StyleSheet, Text, View, ViewStyle } from "react-native";
-import { Ionicons } from "@react-native-vector-icons/ionicons";
-import Svg, { Image as SvgImage, Defs, ClipPath, Circle } from "react-native-svg";
-import type { Mechanic } from "@/types/mechanic";
+import React, {useEffect} from "react";
+import {Image, StyleProp, StyleSheet, Text, View, ViewStyle} from "react-native";
+import {Ionicons} from "@react-native-vector-icons/ionicons";
+import Svg, {Image as SvgImage, Defs, ClipPath, Circle} from "react-native-svg";
+import type {Mechanic} from "@/types/mechanic";
 
 interface MechanicMapMarkerProps {
     mechanic: Mechanic;
@@ -12,11 +12,11 @@ interface MechanicMapMarkerProps {
 }
 
 export const MechanicMapMarker: React.FC<MechanicMapMarkerProps> = ({
-    mechanic,
-    isSelected = false,
-    style,
-    onImageLoad,
-}) => {
+                                                                        mechanic,
+                                                                        isSelected = false,
+                                                                        style,
+                                                                        onImageLoad,
+                                                                    }) => {
     const profileImg =
         mechanic.profileImage ||
         (mechanic as any).profile_image ||
@@ -29,7 +29,8 @@ export const MechanicMapMarker: React.FC<MechanicMapMarkerProps> = ({
 
     useEffect(() => {
         if (profileImg) {
-            Image.prefetch(profileImg).catch(() => {});
+            Image.prefetch(profileImg).catch(() => {
+            });
         }
     }, [profileImg]);
 
@@ -60,11 +61,11 @@ export const MechanicMapMarker: React.FC<MechanicMapMarkerProps> = ({
                             <Svg width={25} height={25} viewBox="0 0 25 25" style={StyleSheet.absoluteFill}>
                                 <Defs>
                                     <ClipPath id={`clip-${mechanic.id}`}>
-                                        <Circle cx="12.5" cy="12.5" r="12.5" />
+                                        <Circle cx="12.5" cy="12.5" r="12.5"/>
                                     </ClipPath>
                                 </Defs>
                                 <SvgImage
-                                    href={{ uri: profileImg }}
+                                    href={{uri: profileImg}}
                                     width="25"
                                     height="25"
                                     preserveAspectRatio="xMidYMid slice"
@@ -75,7 +76,7 @@ export const MechanicMapMarker: React.FC<MechanicMapMarkerProps> = ({
 
                             {/* Standard Native Image */}
                             <Image
-                                source={{ uri: profileImg }}
+                                source={{uri: profileImg}}
                                 style={styles.avatarImage}
                                 resizeMode="cover"
                                 fadeDuration={0}
@@ -96,7 +97,7 @@ export const MechanicMapMarker: React.FC<MechanicMapMarkerProps> = ({
                 )}
 
                 {/* 4. Red Dot with White Border on Bottom Edge */}
-                <View style={styles.redDot} />
+                <View style={styles.redDot}/>
             </View>
         </View>
     );
@@ -114,7 +115,7 @@ const styles = StyleSheet.create({
         minWidth: 84,
     },
     selectedContainer: {
-        transform: [{ scale: 1.12 }],
+        transform: [{scale: 1.12}],
     },
     distBadge: {
         backgroundColor: "#141A22",
@@ -126,7 +127,7 @@ const styles = StyleSheet.create({
         borderWidth: 1,
         borderColor: "rgba(255, 255, 255, 0.2)",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 2 },
+        shadowOffset: {width: 0, height: 2},
         shadowOpacity: 0.35,
         shadowRadius: 3,
         elevation: 6,
@@ -198,7 +199,7 @@ const styles = StyleSheet.create({
         borderWidth: 1.2,
         borderColor: "#ffffff",
         shadowColor: "#000",
-        shadowOffset: { width: 0, height: 1 },
+        shadowOffset: {width: 0, height: 1},
         shadowOpacity: 0.4,
         shadowRadius: 2,
         elevation: 25,

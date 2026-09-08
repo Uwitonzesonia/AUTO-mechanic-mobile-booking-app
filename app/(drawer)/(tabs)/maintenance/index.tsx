@@ -1,333 +1,94 @@
-import React, {useLayoutEffect, useState, useRef, useEffect, useCallback} from "react";
-import {StyleSheet, View, Text, TouchableOpacity, ActivityIndicator, Image} from "react-native";
-import MapView, {Marker} from "react-native-maps";
-import {useNavigation, useLocalSearchParams, useRouter} from "expo-router";
-import {Ionicons} from "@react-native-vector-icons/ionicons";
+import React, {useLayoutEffect} from "react";
+import {StyleSheet, View} from "react-native";
+import {useNavigation} from "expo-router";
+import {LinearBgView} from "@/components/LinearBg";
 import BottomCard from "@/components/maintenance/BottomCard";
-import {UserLocationRadarMarker} from "@/components/maintenance/UserLocationRadarMarker";
-import {MechanicMapMarker} from "@/components/maintenance/MechanicMapMarker";
 import {MechanicDetailCard} from "@/components/maintenance/MechanicDetailCard";
 import {TransparentHeaderCard} from "@/components/maintenance/TransparentHeaderCard";
-import {DARK_MAP_STYLE} from "@/constants/mapStyle";
-import {useUserLocation} from "@/hooks/useUserLocation";
-import {LinearBgView} from "@/components/LinearBg";
-import type {Mechanic} from "@/types/mechanic";
-
-interface MechanicMarkerProps {
-    mechanic: Mechanic;
-    isSelected: boolean;
-    onPress: () => void;
-    opacity?: number;
-}
-
-const MechanicMarker = React.memo(({mechanic, isSelected, onPress, opacity = 1}: MechanicMarkerProps) => {
-    const [tracksViewChanges, setTracksViewChanges] = useState(true);
-    const stopTrackingTimer = useRef<ReturnType<typeof setTimeout> | null>(null);
-    const isFirstRender = useRef(true);
-
-    const lat = mechanic.current_location?.lat ?? mechanic.location?.lat;
-    const lon = mechanic.current_location?.lon ?? mechanic.location?.lon;
-    if (lat === undefined || lon === undefined) return null;
-
-    const handleImageLoad = useCallback(() => {
-        if (stopTrackingTimer.current) clearTimeout(stopTrackingTimer.current);
-        // Keep tracking active for 500ms so react-native-maps captures the rendered image bitmap
-        stopTrackingTimer.current = setTimeout(() => {
-            setTracksViewChanges(false);
-        }, 500);
-    }, []);
-
-    // Initial mount: keep tracking active for 3 seconds so pre-fetched images render into the snapshot
-    useEffect(() => {
-        const timer = setTimeout(() => {
-            setTracksViewChanges(false);
-        }, 3000);
-        return () => {
-            clearTimeout(timer);
-            if (stopTrackingTimer.current) clearTimeout(stopTrackingTimer.current);
-        };
-    }, []);
-
-    // Re-enable tracking temporarily when opacity transitions to 1 (visible) so snapshot captures cleanly
-    useEffect(() => {
-        if (opacity === 1) {
-            setTracksViewChanges(true);
-            const timer = setTimeout(() => {
-                setTracksViewChanges(false);
-            }, 600);
-            return () => clearTimeout(timer);
-        }
-    }, [opacity]);
-
-    // Re-enable tracking temporarily when selection changes so scale and styles update
-    useEffect(() => {
-        if (isFirstRender.current) {
-            isFirstRender.current = false;
-            return;
-        }
-        setTracksViewChanges(true);
-        const timer = setTimeout(() => {
-            setTracksViewChanges(false);
-        }, 400);
-        return () => clearTimeout(timer);
-    }, [isSelected]);
-
-    return (
-        <Marker
-            identifier={`mechanic-marker-${mechanic.id}`}
-            coordinate={{latitude: lat, longitude: lon}}
-            anchor={{x: 0.5, y: 1}}
-            title={mechanic.names}
-            description={`⭐ ${mechanic.rating} • Flat: $${mechanic.flat_fee}`}
-            onPress={opacity > 0 ? onPress : undefined}
-            tracksViewChanges={tracksViewChanges}
-            opacity={opacity}
-        >
-            <MechanicMapMarker
-                mechanic={mechanic}
-                isSelected={isSelected}
-                onImageLoad={handleImageLoad}
-            />
-        </Marker>
-    );
-});
+import {MaintenanceMapView} from "@/components/maintenance/map/MaintenanceMapView";
+import {LocationStateView} from "@/components/maintenance/map/LocationStateView";
+import {useMaintenanceCoordinator} from "@/hooks/useMaintenanceCoordinator";
 
 export default function MaintenanceScreen() {
     const navigation = useNavigation();
-    const router = useRouter();
-    const params = useLocalSearchParams<{
-        searchTrigger?: string;
-        car?: string;
-        location?: string;
-        category?: string;
-    }>();
-    const mapRef = useRef<MapView | null>(null);
 
-    // Search state & detail modal state
-    const [isSearching, setIsSearching] = useState(true);
-    const [selectedMechanic, setSelectedMechanic] = useState<Mechanic | null>(null);
-    const [showDetailModal, setShowDetailModal] = useState<boolean>(false);
-
-    // Fetch user location and get 5 closest mechanics relative to user
-    const {userCoords, nearbyMechanics, hasPermission, refreshLocation} = useUserLocation(5);
+    const {
+        mapRef,
+        userCoords,
+        hasPermission,
+        refreshLocation,
+        route,
+        isSearching,
+        selectedMechanic,
+        showDetailModal,
+        isBooked,
+        mechanicsToRender,
+        handleSearchComplete,
+        handleSelectMechanic,
+        handleCloseDetail,
+        handleCancelPress,
+        handleResearch,
+        handleConfirm,
+        handleChat,
+        handleCall,
+        searchTrigger,
+    } = useMaintenanceCoordinator();
 
     useLayoutEffect(() => {
-        navigation.setOptions({
-            header: () => null,
-        });
+        navigation.setOptions({header: () => null});
     }, [navigation]);
-
-    // Handle search trigger from RepairLocationModal
-    const prevSearchTriggerRef = useRef<string | undefined>(params.searchTrigger);
-    useEffect(() => {
-        if (params.searchTrigger && params.searchTrigger !== prevSearchTriggerRef.current) {
-            prevSearchTriggerRef.current = params.searchTrigger;
-            setIsSearching(true);
-            setSelectedMechanic(null);
-            setShowDetailModal(false);
-            refreshLocation();
-
-            if (mapRef.current && userCoords) {
-                mapRef.current.animateToRegion(
-                    {
-                        latitude: userCoords.latitude,
-                        longitude: userCoords.longitude,
-                        latitudeDelta: 0.05,
-                        longitudeDelta: 0.05,
-                    },
-                    800
-                );
-            }
-        }
-    }, [params.searchTrigger, refreshLocation, userCoords]);
-
-    // When searching completes, reveal mechanics and allow selection
-    const handleSearchComplete = useCallback(() => {
-        setIsSearching(false);
-        setShowDetailModal(false);
-        setSelectedMechanic(null);
-    }, []);
-
-    // When a mechanic marker is clicked on the map:
-    // 1. Hide other mechanics and their avatars
-    // 2. Center map camera on clicked mechanic
-    // 3. Show MechanicDetailCard modal above BottomCard
-    const handleSelectMechanic = useCallback((mechanic: Mechanic) => {
-        setSelectedMechanic(mechanic);
-        setShowDetailModal(true);
-
-        const lat = mechanic.current_location?.lat ?? mechanic.location?.lat;
-        const lon = mechanic.current_location?.lon ?? mechanic.location?.lon;
-        if (mapRef.current && lat !== undefined && lon !== undefined) {
-            mapRef.current.animateToRegion(
-                {
-                    latitude: lat,
-                    longitude: lon,
-                    latitudeDelta: 0.035,
-                    longitudeDelta: 0.035,
-                },
-                500
-            );
-        }
-    }, []);
-
-    // Close detail modal and show all mechanics again
-    const handleCloseDetail = useCallback(() => {
-        setShowDetailModal(false);
-        setSelectedMechanic(null);
-    }, []);
-
-    // Re-Search button: restart radar search
-    const handleResearch = useCallback(() => {
-        setShowDetailModal(false);
-        setSelectedMechanic(null);
-        setIsSearching(true);
-        refreshLocation();
-
-        if (mapRef.current && userCoords) {
-            mapRef.current.animateToRegion(
-                {
-                    latitude: userCoords.latitude,
-                    longitude: userCoords.longitude,
-                    latitudeDelta: 0.05,
-                    longitudeDelta: 0.05,
-                },
-                800
-            );
-        }
-    }, [refreshLocation, userCoords]);
-
-    // Confirm button: confirm selected mechanic
-    const handleConfirm = (mechanic: Mechanic) => {
-        router.push({
-            pathname: "/(drawer)/(tabs)/maintenance/booking",
-            params: {
-                mechanicId: mechanic.id,
-            },
-        })
-    }
-
-    // Pre-fetch mechanic avatar images as soon as nearby mechanics are loaded
-    useEffect(() => {
-        if (nearbyMechanics && nearbyMechanics.length > 0) {
-            nearbyMechanics.forEach((m) => {
-                const img = m.profileImage || (m as any).profile_image;
-                if (img) {
-                    Image.prefetch(img).catch(() => {
-                    });
-                }
-            });
-        }
-    }, [nearbyMechanics]);
-
-    // Animate map camera when user location is detected or updated
-    useEffect(() => {
-        if (mapRef.current && userCoords) {
-            mapRef.current.animateToRegion(
-                {
-                    latitude: userCoords.latitude,
-                    longitude: userCoords.longitude,
-                    latitudeDelta: 0.05,
-                    longitudeDelta: 0.05,
-                },
-                800
-            );
-        }
-    }, [userCoords?.latitude, userCoords?.longitude]);
 
     return (
         <LinearBgView style={styles.container}>
-            {/* Transparent Floating Header (Back, [x >> Slide to cancel], Profile Avatar) */}
-            <TransparentHeaderCard
-                onCancelPress={() => {
-                    navigation.goBack();
-                }}
-            />
+            <TransparentHeaderCard onCancelPress={handleCancelPress}/>
 
             {userCoords ? (
                 <>
-                    {/* Dark Theme Map Background */}
-                    <MapView
+                    <MaintenanceMapView
                         ref={mapRef}
-                        style={StyleSheet.absoluteFill}
-                        customMapStyle={DARK_MAP_STYLE}
-                        showsUserLocation={false}
-                        showsMyLocationButton={false}
-                        initialRegion={{
-                            latitude: userCoords.latitude,
-                            longitude: userCoords.longitude,
-                            latitudeDelta: 0.05,
-                            longitudeDelta: 0.05,
-                        }}
-                    >
-                        {/* User Location with White Border Circle (scaling up and down while searching, non-scaling after search) */}
-                        <Marker
-                            key="user-location-marker"
-                            identifier="user-location-marker"
-                            coordinate={userCoords}
-                            anchor={{x: 0.5, y: 0.5}}
-                            title="My Location"
-                            tracksViewChanges={isSearching}
-                        >
-                            <UserLocationRadarMarker isSearching={isSearching}/>
-                        </Marker>
+                        userCoords={userCoords}
+                        mechanics={mechanicsToRender}
+                        selectedMechanic={selectedMechanic}
+                        isSearching={isSearching}
+                        showDetailModal={showDetailModal}
+                        isBooked={isBooked}
+                        routeCoordinates={route?.coordinates}
+                        onSelectMechanic={handleSelectMechanic}
+                    />
 
-                        {/* 5 Closest Mechanics: hide other mechanics and their avatar on click */}
-                        {nearbyMechanics.map((mechanic) => {
-                            const isVisible =
-                                !isSearching &&
-                                (!showDetailModal || selectedMechanic?.id === mechanic.id);
-
-                            return (
-                                <MechanicMarker
-                                    key={`mechanic-marker-${mechanic.id}`}
-                                    mechanic={mechanic}
-                                    isSelected={selectedMechanic?.id === mechanic.id}
-                                    onPress={() => handleSelectMechanic(mechanic)}
-                                    opacity={isVisible ? 1 : 0}
-                                />
-                            );
-                        })}
-                    </MapView>
-
-                    {/* Bottom Card Overlay & Mechanic Detail Modal */}
                     <View style={styles.bottomContainer} pointerEvents="box-none">
                         {showDetailModal && selectedMechanic && (
                             <MechanicDetailCard
                                 mechanic={selectedMechanic}
-                                distance={selectedMechanic.current_location?.distanceKm}
+                                distance={
+                                    isBooked
+                                        ? (route?.distanceKm ?? selectedMechanic.current_location?.distanceKm)
+                                        : selectedMechanic.current_location?.distanceKm
+                                }
+                                durationText={isBooked ? route?.formattedDuration : undefined}
+                                isBooked={isBooked}
                                 onResearch={handleResearch}
                                 handleOnBooking={handleConfirm}
                                 onClose={handleCloseDetail}
+                                onChat={handleChat}
+                                onCall={handleCall}
                             />
                         )}
-                        <BottomCard
-                            key={params.searchTrigger || "initial-search"}
-                            isSearching={isSearching}
-                            onSearchComplete={handleSearchComplete}
-                        />
+
+                        {!isBooked && (
+                            <BottomCard
+                                key={searchTrigger || "initial-search"}
+                                isSearching={isSearching}
+                                onSearchComplete={handleSearchComplete}
+                            />
+                        )}
                     </View>
                 </>
-            ) : hasPermission === false ? (
-                <View style={styles.centerFeedbackContainer}>
-                    <Ionicons name="location-outline" size={56} color="#ef4444"/>
-                    <Text style={styles.feedbackTitle}>Location Permission Needed</Text>
-                    <Text style={styles.feedbackSubtitle}>
-                        AUTO Mechanic requires your location to find mechanics near you.
-                    </Text>
-                    <TouchableOpacity
-                        style={styles.retryButton}
-                        activeOpacity={0.8}
-                        onPress={refreshLocation}
-                    >
-                        <Text style={styles.retryButtonText}>Enable Location</Text>
-                    </TouchableOpacity>
-                </View>
             ) : (
-                <View style={styles.centerFeedbackContainer}>
-                    <ActivityIndicator size="large" color="#ffffff"/>
-                    <Text style={styles.loadingText}>Acquiring your location...</Text>
-                </View>
+                <LocationStateView
+                    hasPermission={hasPermission}
+                    onRetryPermission={refreshLocation}
+                />
             )}
         </LinearBgView>
     );
@@ -344,42 +105,5 @@ const styles = StyleSheet.create({
         left: 16,
         right: 16,
         gap: 8,
-    },
-    centerFeedbackContainer: {
-        flex: 1,
-        alignItems: "center",
-        justifyContent: "center",
-        paddingHorizontal: 32,
-    },
-    feedbackTitle: {
-        fontSize: 20,
-        fontWeight: "700",
-        color: "#ffffff",
-        marginTop: 16,
-        marginBottom: 8,
-        textAlign: "center",
-    },
-    feedbackSubtitle: {
-        fontSize: 14,
-        color: "#9ca3af",
-        textAlign: "center",
-        marginBottom: 24,
-        lineHeight: 20,
-    },
-    retryButton: {
-        backgroundColor: "#2563eb",
-        paddingHorizontal: 24,
-        paddingVertical: 12,
-        borderRadius: 24,
-    },
-    retryButtonText: {
-        color: "#ffffff",
-        fontWeight: "600",
-        fontSize: 15,
-    },
-    loadingText: {
-        fontSize: 15,
-        color: "#9ca3af",
-        marginTop: 16,
     },
 });

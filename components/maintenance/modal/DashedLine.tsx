@@ -1,6 +1,6 @@
-import React, { useState } from 'react';
-import { StyleProp, StyleSheet, View, ViewStyle } from 'react-native';
-import Svg, { Line } from 'react-native-svg';
+import React, {useState} from 'react';
+import {StyleProp, StyleSheet, View, ViewStyle} from 'react-native';
+import Svg, {Line} from 'react-native-svg';
 
 export interface DashedLineProps {
     color?: string;
@@ -11,12 +11,12 @@ export interface DashedLineProps {
 }
 
 export function DashedLine({
-    color = 'rgba(255, 255, 255, 0.3)',
-    strokeWidth = 1.2,
-    dashLength = 6,
-    dashGap = 4,
-    style,
-}: DashedLineProps) {
+                               color = 'rgba(255, 255, 255, 0.3)',
+                               strokeWidth = 1.2,
+                               dashLength = 6,
+                               dashGap = 4,
+                               style,
+                           }: DashedLineProps) {
     const [width, setWidth] = useState(0);
 
     return (

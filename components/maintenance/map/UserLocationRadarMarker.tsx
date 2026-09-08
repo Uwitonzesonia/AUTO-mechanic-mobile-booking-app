@@ -1,6 +1,6 @@
-import React, { useEffect, useRef } from "react";
-import { Animated, Easing, StyleSheet, View } from "react-native";
-import { LocationArrowMarker } from "./LocationArrowMarker";
+import React, {useEffect, useRef} from "react";
+import {Animated, Easing, StyleSheet, View} from "react-native";
+import {LocationArrowMarker} from "./LocationArrowMarker";
 
 interface UserLocationRadarMarkerProps {
     isSearching: boolean;
@@ -8,9 +8,9 @@ interface UserLocationRadarMarkerProps {
 }
 
 export const UserLocationRadarMarker: React.FC<UserLocationRadarMarkerProps> = ({
-    isSearching,
-    size = 160,
-}) => {
+                                                                                    isSearching,
+                                                                                    size = 160,
+                                                                                }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
     const opacityAnim = useRef(new Animated.Value(1)).current;
 
@@ -79,14 +79,14 @@ export const UserLocationRadarMarker: React.FC<UserLocationRadarMarkerProps> = (
     };
 
     return (
-        <View collapsable={false} style={[styles.container, { width: size + 40, height: size + 40 }]}>
+        <View collapsable={false} style={[styles.container, {width: size + 40, height: size + 40}]}>
             {/* White border circle (scaling while searching, static non-scaling after search) */}
             <Animated.View
                 style={[
                     styles.radarCircle,
                     circleStyle,
                     {
-                        transform: [{ scale: scaleAnim }],
+                        transform: [{scale: scaleAnim}],
                         opacity: opacityAnim,
                     },
                 ]}
@@ -94,7 +94,7 @@ export const UserLocationRadarMarker: React.FC<UserLocationRadarMarkerProps> = (
 
             {/* User Location Arrow in dead center */}
             <View style={styles.arrowCenter}>
-                <LocationArrowMarker size={28} />
+                <LocationArrowMarker size={28}/>
             </View>
         </View>
     );
@@ -113,7 +113,7 @@ const styles = StyleSheet.create({
         borderColor: "#FFFFFF",
         backgroundColor: "rgba(255, 255, 255, 0.08)",
         shadowColor: "#FFFFFF",
-        shadowOffset: { width: 0, height: 0 },
+        shadowOffset: {width: 0, height: 0},
         shadowOpacity: 0.35,
         shadowRadius: 8,
         elevation: 4,

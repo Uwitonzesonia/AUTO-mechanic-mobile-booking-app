@@ -1,20 +1,20 @@
 import React from 'react';
-import { StyleSheet, View } from 'react-native';
-import { Ionicons } from '@react-native-vector-icons/ionicons';
+import {StyleSheet, View} from 'react-native';
+import {Ionicons} from '@react-native-vector-icons/ionicons';
 
 export function RepairLocationTimeline() {
     return (
         <View style={styles.container}>
             <View style={styles.mapIconCircle}>
-                <Ionicons name="location" size={16} color="#ffffff" />
+                <Ionicons name="location" size={16} color="#ffffff"/>
             </View>
-            <View style={styles.verticalLine} />
+            <View style={styles.verticalLine}/>
             <View style={styles.carIconCircle}>
-                <Ionicons name="car" size={24} color="#ff3b30" />
+                <Ionicons name="car" size={24} color="#ff3b30"/>
             </View>
-            <View style={styles.verticalLine} />
+            <View style={styles.verticalLine}/>
             <View style={styles.mapIconCircle}>
-                <Ionicons name="location" size={16} color="#ffffff" />
+                <Ionicons name="location" size={16} color="#ffffff"/>
             </View>
         </View>
     );

@@ -6,13 +6,13 @@ import {
     View,
     ViewStyle,
 } from "react-native";
-import { SafeAreaView } from "react-native-safe-area-context";
-import { useRouter } from "expo-router";
-import { Ionicons } from "@react-native-vector-icons/ionicons";
-import { useAuth } from "@/hooks/useAuth";
-import { Button } from "@/components/ui/Button";
-import { Avatar } from "@/components/ui/Avatar";
-import { SlideToCancelButton } from "./SlideToCancelButton";
+import {SafeAreaView} from "react-native-safe-area-context";
+import {useRouter} from "expo-router";
+import {Ionicons} from "@react-native-vector-icons/ionicons";
+import {useAuth} from "@/hooks/useAuth";
+import {Button} from "@/components/ui/Button";
+import {Avatar} from "@/components/ui/Avatar";
+import {SlideToCancelButton} from "./SlideToCancelButton";
 
 export interface TransparentHeaderCardProps {
     onBackPress?: () => void;
@@ -23,24 +23,15 @@ export interface TransparentHeaderCardProps {
 }
 
 export function TransparentHeaderCard({
-    onBackPress,
-    onCancelPress,
-    onProfilePress,
-    avatarUri,
-    style,
-}: TransparentHeaderCardProps) {
+                                          onCancelPress,
+                                          onProfilePress,
+                                          avatarUri,
+                                          style,
+                                      }: TransparentHeaderCardProps) {
     const router = useRouter();
-    const { user, userProfile } = useAuth();
+    const {user, userProfile} = useAuth();
 
-    const handleBack = () => {
-        if (onBackPress) {
-            onBackPress();
-        } else if (router.canGoBack()) {
-            router.back();
-        }
-    };
-
-    const handleProfile = () => {
+    const handleProfilePress = () => {
         if (onProfilePress) {
             onProfilePress();
         } else {
@@ -57,25 +48,22 @@ export function TransparentHeaderCard({
     return (
         <SafeAreaView edges={["top"]} style={[styles.safeArea, style]} pointerEvents="box-none">
             <View style={styles.headerRow} pointerEvents="box-none">
-                {/* 1. Left: Back Button using updated Pressable-based Button component */}
                 <Button
                     variant="secondary"
                     size="icon"
-                    icon={<Ionicons name="chevron-back" size={24} color="#ffffff" />}
-                    onPress={handleBack}
+                    icon={<Ionicons name="chevron-back" size={24} color="#ffffff"/>}
+                    onPress={onCancelPress}
                     style={styles.backButton}
                     accessibilityLabel="Go back"
-                    hitSlop={{ top: 8, bottom: 8, left: 8, right: 8 }}
+                    hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
                 />
 
-                {/* 2. Middle: Interactive [x >> Slide to cancel] Slider */}
-                <SlideToCancelButton onCancel={onCancelPress} />
+                <SlideToCancelButton onCancel={onCancelPress}/>
 
-                {/* 3. Right: Existing Shared Avatar Component with White Border */}
                 <Pressable
-                    onPress={handleProfile}
+                    onPress={handleProfilePress}
                     accessibilityRole="button"
-                    accessibilityLabel="Profile"
+                    accessibilityLabel="Open profile"
                     style={styles.avatarWrapper}
                 >
                     <Avatar
@@ -120,15 +108,15 @@ const styles = StyleSheet.create({
         borderColor: "rgba(255, 255, 255, 0.12)",
         alignItems: "center",
         justifyContent: "center",
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 3 },
+        shadowColor: "#000000",
+        shadowOffset: {width: 0, height: 3},
         shadowOpacity: 0.3,
         shadowRadius: 5,
         elevation: 6,
     },
     avatarWrapper: {
-        shadowColor: "#000",
-        shadowOffset: { width: 0, height: 3 },
+        shadowColor: "#000000",
+        shadowOffset: {width: 0, height: 3},
         shadowOpacity: 0.3,
         shadowRadius: 5,
         elevation: 6,
