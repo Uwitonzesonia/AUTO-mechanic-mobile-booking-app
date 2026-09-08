@@ -55,8 +55,12 @@ An on-demand mobile roadside assistance and auto mechanic booking application. B
 ### 👤 Customer Portal
 - **Vehicle Garage**: Register and manage multiple vehicles (Make, Model, Year, Photos) with expense and service history tracking.
 - **EV Health & Monitoring**: Dedicated EV telemetry display with battery level gauge and driving range status.
-- **Instant Roadside Dispatch**: Pin repair location on interactive maps, select repair categories (Towing, Battery Jump, Tires, Diagnostics, Wash, Mechanical), and search for nearby online mechanics.
-- **Live Mechanic Tracking**: Real-time GPS tracking with animated route polyline, distance calculations, and dynamic ETA bottom sheet.
+- **Roadside Dispatch & Radar Search**: Interactive Google Map with custom dark styling, pulsing GPS radar marker, and automatic nearest mechanics discovery.
+- **Modular Mechanic Presentation**: Glassmorphic frosted-glass discovery card showing verified ratings, completed fixes, experience, and distance.
+- **Turn-by-Turn Mapbox Directions**: Optimal driving route polyline rendering with dark-mode glow strokes, accurate road distance, and live ETA calculations.
+- **Live Mechanic Tracking & Arrival Sheet**: Active arrival card showing real-time ETA, car brand expertise, and one-tap Call and Chat actions.
+- **Slide-to-Cancel & Fresh Flow Reset**: Interactive header slider and back handler that automatically clears cached routes and resets map state upon return.
+- **Multi-Method Payment Selector**: Support for Cash, Mobile Money (MoMo), and Bank Transfer with visual badges and pricing fee breakdown.
 - **In-App Messaging**: Real-time chat with online status indicators, photo attachments, and push notification alerts.
 - **Digital Wallet**: In-app balance, transaction history, contactless cashless payments, and mechanic tipping.
 - **Ratings & Reviews**: Post-service feedback, 5-star ratings, and review history.
@@ -75,10 +79,12 @@ An on-demand mobile roadside assistance and auto mechanic booking application. B
 | Layer | Technology | Purpose |
 | :--- | :--- | :--- |
 | **Framework** | [Expo SDK 57](https://expo.dev/) (React Native 0.86, React 19) | Cross-platform mobile runtime & native modules |
-| **Routing** | [Expo Router](https://docs.expo.dev/router/introduction/) | File-based typed routing (`typedRoutes: true`) |
+| **Routing** | [Expo Router](https://docs.expo.dev/router/introduction/) | File-based typed routing (`typedRoutes: true`) with Drawer + Tabs |
 | **Language** | [TypeScript 6.0](https://www.typescriptlang.org/) | End-to-end type safety |
-| **Styling & UI** | React Native StyleSheet + Themed Tokens | Dark / Light theme support & modular components |
-| **Animations** | [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) | High-performance 60/120 FPS UI transitions |
+| **Maps & Location** | [react-native-maps](https://github.com/react-native-maps/react-native-maps) | Custom dark-themed Google Maps with high-FPS tracked markers |
+| **Routing & Directions** | [Mapbox Directions API v5](https://docs.mapbox.com/api/navigation/directions/) | Optimal turn-by-turn driving route polyline, distance, and duration |
+| **Styling & UI** | React Native StyleSheet + Expo Blur | Glassmorphism, theme tokens, and modular components |
+| **Animations** | [React Native Reanimated](https://docs.swmansion.com/react-native-reanimated/) | High-performance 60/120 FPS UI transitions & radar pulses |
 | **Authentication** | [Firebase Auth](https://firebase.google.com/docs/auth) + Google Sign-In | Secure auth with Expo SecureStore session persistence |
 | **Database** | [Cloud Firestore](https://firebase.google.com/docs/firestore) | Real-time NoSQL database with snapshot listeners |
 | **Storage** | [Firebase Cloud Storage](https://firebase.google.com/docs/storage) | Secure profile avatar, vehicle, and chat photo uploads |
@@ -92,6 +98,7 @@ Designed to operate entirely within free-tier resource quotas during development
 | Service | Purpose | Quota / Free Tier Limit |
 | :--- | :--- | :--- |
 | **Firebase Spark** | Auth, Firestore, Storage | 50K reads/day, 20K writes/day, 1 GB Storage |
+| **Mapbox Directions** | Turn-by-turn routing & ETAs | 100K requests/month free |
 | **Expo Push** | Mobile push notifications | Unlimited free push notifications |
 | **Vercel Hobby** | Serverless notification trigger | 100K function executions/month |
 | **EAS Build** | Android & iOS cloud builds | 30 free builds/month |
@@ -106,42 +113,75 @@ Designed to operate entirely within free-tier resource quotas during development
 
 ```
 AUTO-mechanic-mobile-booking-app/
-├── .vscode/               # Workspace editor settings
-├── app/                   # Expo Router file-based routes
-│   ├── (tabs)/            # Bottom tab navigation
-│   │   ├── _layout.tsx    # Tab navigation shell
-│   │   ├── index.tsx      # Home / Booking screen
-│   │   └── two.tsx        # Secondary tab / Garage screen
-│   ├── _layout.tsx        # Root navigation stack & ThemeProvider
-│   ├── +html.tsx          # Web root HTML template
-│   ├── +not-found.tsx     # 404 handler route
-│   └── modal.tsx          # Global modal overlay screen
-├── assets/                # App icons, splash screens, and fonts
-│   ├── fonts/             # Custom typography (SpaceMono)
-│   └── images/            # Brand assets & adaptive icons
-├── components/            # Reusable UI component library
-│   ├── StyledText.tsx     # Custom styled text primitives
-│   ├── Themed.tsx         # Themed View and Text wrappers
-│   ├── CustomTabs.tsx         # Top application header bar
-│   └── EditScreenInfo.tsx # Screen helper component
-├── config/                # Service initialization
-│   └── firebaseConfig.ts  # Firebase App & Auth with SecureStore persistence
-├── constants/             # Design tokens and colors
-│   └── Colors.ts          # Light & Dark color palettes
-├── context/               # Global state contexts
-│   └── auth/              # AuthContext & AuthProvider
-├── hooks/                 # Custom React hooks
-│   └── useAuth.ts         # User session & profile hook
-├── types/                 # TypeScript interfaces and types
-│   ├── auth.ts            # User, Role, and Session types
-│   └── general.ts         # Shared app interfaces
-├── utils/                 # Utility functions & helpers
-│   ├── renderSecrets.ts   # Safe environment variable accessor
-│   └── secureStore.ts     # Expo SecureStore persistence engine
-├── app.json               # Expo application configuration
-├── package.json           # Project dependencies & scripts
-├── tsconfig.json          # TypeScript compiler configuration
-└── README.md              # Project documentation
+├── app/                                 # Expo Router file-based routes
+│   ├── (auth)/                          # Authentication stack (login, register, forgot-password)
+│   ├── (drawer)/                        # Side navigation drawer
+│   │   ├── (tabs)/                      # Main bottom tab navigation
+│   │   │   ├── maintenance/             # Roadside assistance & repair flow
+│   │   │   │   ├── index.tsx            # Interactive radar map & mechanic search
+│   │   │   │   ├── booking.tsx          # Booking summary & payment selector
+│   │   │   │   ├── job.tsx              # Live active repair job details
+│   │   │   │   └── _layout.tsx          # Maintenance stack shell
+│   │   │   ├── index.tsx                # Home dashboard
+│   │   │   ├── garage.tsx               # Garage & vehicle manager
+│   │   │   ├── wallet.tsx               # In-app wallet & payments
+│   │   │   ├── profile.tsx              # Customer profile
+│   │   │   └── _layout.tsx              # Tabs navigation layout
+│   │   ├── messages.tsx                 # Real-time chat & inbox
+│   │   ├── settings.tsx                 # App preferences & toggles
+│   │   ├── support.tsx                  # Help & FAQ center
+│   │   ├── termsConditions.tsx          # Legal & privacy policies
+│   │   └── _layout.tsx                  # Drawer navigation layout
+│   ├── onboarding.tsx                   # First-time user walkthrough
+│   ├── index.tsx                        # Auth gateway & session redirector
+│   └── _layout.tsx                      # Root provider stack & themes
+├── components/                          # Modular UI component library
+│   ├── maintenance/                     # Roadside maintenance & map components
+│   │   ├── detail/                      # Modular mechanic cards
+│   │   │   ├── MechanicPreviewCard.tsx  # Glassmorphic search discovery card
+│   │   │   ├── MechanicArrivingCard.tsx # Active arrival sheet with live ETA
+│   │   │   └── types.ts                 # Shared card types & formatting helpers
+│   │   ├── MaintenanceMapView.tsx       # MapView with route polylines & markers
+│   │   ├── LocationStateView.tsx        # Location loading & permission states
+│   │   ├── MechanicDetailCard.tsx       # Animated detail card orchestrator
+│   │   ├── MechanicMarker.tsx           # High-FPS tracked mechanic map pin
+│   │   ├── MechanicMapMarker.tsx        # Marker avatar & callout view
+│   │   ├── PaymentMethodSelector.tsx    # Payment dropdown (Cash, MoMo, Bank)
+│   │   ├── SlideToCancelButton.tsx      # Interactive slide-to-cancel slider
+│   │   ├── TransparentHeaderCard.tsx    # Floating header with back & profile
+│   │   ├── UserLocationRadarMarker.tsx  # Pulsing GPS radar marker
+│   │   ├── BottomCard.tsx               # Bottom search trigger sheet
+│   │   └── index.ts                     # Component export barrel
+│   ├── auth/                            # Auth forms & social buttons
+│   ├── ui/                              # UI primitives (Avatar, Button, Input, etc.)
+│   └── navigations/                     # Custom headers & navigation bars
+├── constants/                           # Design tokens & seed data
+│   ├── mapStyle.ts                      # Google Maps dark theme styling
+│   ├── mechanics.ts                     # Mock certified mechanics & flat fees
+│   └── Colors.ts                        # Light & Dark color palettes
+├── context/                             # Global state contexts
+│   └── auth/                            # AuthContext & AuthProvider
+├── hooks/                               # Custom React hooks
+│   ├── useMaintenanceCoordinator.ts     # Map & booking lifecycle coordinator
+│   ├── useMapboxRoute.ts                # Mapbox Directions API hook
+│   ├── useUserLocation.ts               # GPS location & nearby mechanics
+│   └── useAuth.ts                       # User session & profile hook
+├── services/                            # External API clients
+│   ├── mapbox.ts                        # Mapbox Directions API client
+│   └── index.ts                         # Service exports
+├── types/                               # TypeScript interfaces & declarations
+│   ├── mechanic.ts                      # Mechanic & location types
+│   ├── auth.ts                          # User, Role, and Session types
+│   └── general.ts                       # Shared application types
+├── utils/                               # Helper utilities
+│   ├── phone.ts                         # Centralized phone dialing & checks
+│   ├── location.ts                      # Geocoding & distance calculation
+│   ├── secureStore.ts                   # Expo SecureStore persistence
+│   └── renderSecrets.ts                 # Environment variable accessor
+├── app.json                             # Expo application configuration
+├── package.json                         # Project dependencies & scripts
+├── tsconfig.json                        # TypeScript compiler configuration
+└── README.md                            # Project documentation
 ```
 
 ---
@@ -154,6 +194,7 @@ AUTO-mechanic-mobile-booking-app/
 - **Package Manager**: `npm`, `yarn`, or `bun`
 - **Expo Go App** (iOS / Android) or configured Android Studio / Xcode Emulators
 - **Firebase Project**: Firebase Spark plan (Authentication, Firestore, Storage enabled)
+- **Mapbox Account**: Public access token for turn-by-turn driving directions
 
 ### Installation
 
@@ -190,6 +231,14 @@ EXPO_PUBLIC_FIREBASE_APP_ID=your_app_id
 ## GOOGLE OAUTH CONFIGURATION
 EXPO_PUBLIC_GOOGLE_CLIENT_ID=your_google_web_client_id
 EXPO_PUBLIC_IOS_CLIENT_ID=your_google_ios_client_id
+
+## GOOGLE MAPS API KEYS
+EXPO_PUBLIC_GOOGLE_MAPS_API_KEY=your_google_maps_web_api_key
+EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_API_KEY=your_google_maps_android_api_key
+EXPO_PUBLIC_GOOGLE_MAPS_IOS_API_KEY=your_google_maps_ios_api_key
+
+## MAPBOX DIRECTIONS API
+EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_public_access_token
 ```
 
 ### Running the App

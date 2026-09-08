@@ -5,6 +5,7 @@ export default function MaintenanceLayout() {
         <Stack>
             <Stack.Screen name="index" options={{headerShown: false}}/>
             <Stack.Screen name="booking" options={{headerShown: false}}/>
+            <Stack.Screen name="job" options={{headerShown: false}}/>
         </Stack>
     );
 }
