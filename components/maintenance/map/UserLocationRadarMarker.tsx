@@ -1,4 +1,4 @@
-import React, {useEffect, useRef} from "react";
+import React, {useEffect, useRef, useState} from "react";
 import {Animated, Easing, StyleSheet, View} from "react-native";
 import {LocationArrowMarker} from "./LocationArrowMarker";
 
@@ -12,10 +12,15 @@ export const UserLocationRadarMarker: React.FC<UserLocationRadarMarkerProps> = (
                                                                                     size = 160,
                                                                                 }) => {
     const scaleAnim = useRef(new Animated.Value(1)).current;
-    const opacityAnim = useRef(new Animated.Value(1)).current;
+    const opacityAnim = useRef(new Animated.Value(isSearching ? 1 : 0)).current;
+    const [renderCircle, setRenderCircle] = useState(isSearching);
 
     useEffect(() => {
         if (isSearching) {
+            setRenderCircle(true);
+            opacityAnim.setValue(1);
+            scaleAnim.setValue(1);
+
             // Pulse animation: smoothly scale up and down continuously
             const pulse = Animated.loop(
                 Animated.parallel([
@@ -55,20 +60,15 @@ export const UserLocationRadarMarker: React.FC<UserLocationRadarMarkerProps> = (
                 pulse.stop();
             };
         } else {
-            // Settle to static non-scaling circle after search finishes
-            Animated.parallel([
-                Animated.timing(scaleAnim, {
-                    toValue: 1,
-                    duration: 400,
-                    easing: Easing.out(Easing.ease),
-                    useNativeDriver: false,
-                }),
-                Animated.timing(opacityAnim, {
-                    toValue: 1,
-                    duration: 400,
-                    useNativeDriver: false,
-                }),
-            ]).start();
+            // Fade out and remove circle entirely once search finishes
+            Animated.timing(opacityAnim, {
+                toValue: 0,
+                duration: 250,
+                easing: Easing.out(Easing.ease),
+                useNativeDriver: false,
+            }).start(() => {
+                setRenderCircle(false);
+            });
         }
     }, [isSearching, scaleAnim, opacityAnim]);
 
@@ -80,17 +80,19 @@ export const UserLocationRadarMarker: React.FC<UserLocationRadarMarkerProps> = (
 
     return (
         <View collapsable={false} style={[styles.container, {width: size + 40, height: size + 40}]}>
-            {/* White border circle (scaling while searching, static non-scaling after search) */}
-            <Animated.View
-                style={[
-                    styles.radarCircle,
-                    circleStyle,
-                    {
-                        transform: [{scale: scaleAnim}],
-                        opacity: opacityAnim,
-                    },
-                ]}
-            />
+            {/* White border circle (visible ONLY while searching, completely hidden after search) */}
+            {renderCircle && (
+                <Animated.View
+                    style={[
+                        styles.radarCircle,
+                        circleStyle,
+                        {
+                            transform: [{scale: scaleAnim}],
+                            opacity: opacityAnim,
+                        },
+                    ]}
+                />
+            )}
 
             {/* User Location Arrow in dead center */}
             <View style={styles.arrowCenter}>

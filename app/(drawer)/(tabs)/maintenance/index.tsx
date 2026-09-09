@@ -27,6 +27,7 @@ export default function MaintenanceScreen() {
         handleSelectMechanic,
         handleCloseDetail,
         handleCancelPress,
+        handleBackPress,
         handleResearch,
         handleConfirm,
         handleChat,
@@ -40,7 +41,10 @@ export default function MaintenanceScreen() {
 
     return (
         <LinearBgView style={styles.container}>
-            <TransparentHeaderCard onCancelPress={handleCancelPress}/>
+            <TransparentHeaderCard
+                onBackPress={handleBackPress}
+                onCancelPress={handleCancelPress}
+            />
 
             {userCoords ? (
                 <>

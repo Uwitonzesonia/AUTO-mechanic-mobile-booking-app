@@ -23,6 +23,7 @@ export interface TransparentHeaderCardProps {
 }
 
 export function TransparentHeaderCard({
+                                          onBackPress,
                                           onCancelPress,
                                           onProfilePress,
                                           avatarUri,
@@ -52,7 +53,7 @@ export function TransparentHeaderCard({
                     variant="secondary"
                     size="icon"
                     icon={<Ionicons name="chevron-back" size={24} color="#ffffff"/>}
-                    onPress={onCancelPress}
+                    onPress={onBackPress ?? onCancelPress}
                     style={styles.backButton}
                     accessibilityLabel="Go back"
                     hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}

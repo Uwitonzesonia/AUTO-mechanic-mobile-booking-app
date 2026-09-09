@@ -1,5 +1,5 @@
 import { useCallback, useEffect, useMemo, useRef, useState } from "react";
-import { Image } from "react-native";
+import { BackHandler, Image } from "react-native";
 import MapView from "react-native-maps";
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { useUserLocation } from "@/hooks/useUserLocation";
@@ -200,6 +200,23 @@ export function useMaintenanceCoordinator() {
     [clearRoute]
   );
 
+  const resetToInitialMap = useCallback(
+    (duration: number = 600) => {
+      if (mapRef.current && userCoords) {
+        mapRef.current.animateToRegion(
+          {
+            latitude: userCoords.latitude,
+            longitude: userCoords.longitude,
+            latitudeDelta: 0.05,
+            longitudeDelta: 0.05,
+          },
+          duration
+        );
+      }
+    },
+    [userCoords]
+  );
+
   const handleCloseDetail = useCallback(() => {
     setShowDetailModal(false);
     setSelectedMechanic(null);
@@ -210,14 +227,24 @@ export function useMaintenanceCoordinator() {
       bookedMechanicId: undefined,
       bookedTimestamp: undefined,
     });
-  }, [clearRoute, router]);
+    resetToInitialMap();
+  }, [clearRoute, resetToInitialMap, router]);
+
+  const handleBackPress = useCallback(() => {
+    if (showDetailModal || selectedMechanic || isBooked) {
+      handleCloseDetail();
+    } else if (router.canGoBack()) {
+      router.back();
+    } else {
+      router.replace("/(drawer)/(tabs)");
+    }
+  }, [showDetailModal, selectedMechanic, isBooked, handleCloseDetail, router]);
 
   const handleCancelPress = useCallback(() => {
     clearRoute();
     setSelectedMechanic(null);
     setShowDetailModal(false);
     setIsBooked(false);
-    setIsSearching(true);
     prevBookedKeyRef.current = undefined;
     prevSearchTriggerRef.current = undefined;
 
@@ -227,20 +254,22 @@ export function useMaintenanceCoordinator() {
       searchTrigger: undefined,
     });
 
-    if (mapRef.current && userCoords) {
-      mapRef.current.animateToRegion(
-        {
-          latitude: userCoords.latitude,
-          longitude: userCoords.longitude,
-          latitudeDelta: 0.05,
-          longitudeDelta: 0.05,
-        },
-        500
-      );
-    }
+    resetToInitialMap();
+  }, [clearRoute, resetToInitialMap, router]);
 
-    router.replace("/(drawer)/(tabs)");
-  }, [clearRoute, router, userCoords]);
+  // Handle Android hardware back press
+  useEffect(() => {
+    const onHardwareBack = () => {
+      if (showDetailModal || selectedMechanic || isBooked) {
+        handleCloseDetail();
+        return true;
+      }
+      return false;
+    };
+
+    const backSub = BackHandler.addEventListener("hardwareBackPress", onHardwareBack);
+    return () => backSub.remove();
+  }, [showDetailModal, selectedMechanic, isBooked, handleCloseDetail]);
 
   const handleResearch = useCallback(() => {
     setShowDetailModal(false);
@@ -309,6 +338,8 @@ export function useMaintenanceCoordinator() {
     handleSelectMechanic,
     handleCloseDetail,
     handleCancelPress,
+    handleBackPress,
+    resetToInitialMap,
     handleResearch,
     handleConfirm,
     handleChat,
