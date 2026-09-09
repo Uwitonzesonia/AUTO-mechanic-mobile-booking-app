@@ -307,7 +307,7 @@ export function useMaintenanceCoordinator() {
         (mechanic: Mechanic) => {
             router.push({
                 pathname: "/(drawer)/messages",
-                params: mechanic.id ? {chatPartnerId: mechanic.id} : undefined,
+                params: {mechanicId: mechanic.id},
             });
         },
         [router]
