@@ -3,9 +3,11 @@ import type { Mechanic } from "@/types/mechanic";
 
 export interface MechanicDetailCardProps {
   mechanic: Mechanic;
-  distance?: number;
-  durationText?: string;
+  distance?: number | null;
+  distanceMeters?: number | null;
+  durationText?: string | null;
   isBooked?: boolean;
+  isArrived?: boolean;
   onResearch?: () => void;
   handleOnBooking?: (mechanic: Mechanic) => void;
   onClose?: () => void;
@@ -31,7 +33,16 @@ export function getMechanicAvatarUrl(mechanic: Mechanic): string | undefined {
   );
 }
 
-export function formatDistance(distance?: number): string {
-  if (distance == null) return "0.0 km";
-  return `${Number(distance).toFixed(1)} km`;
+export function formatDistance(distanceKm?: number | null, distanceMeters?: number | null): string {
+  if (distanceMeters != null) {
+    if (distanceMeters < 1000) {
+      return `${Math.round(distanceMeters)} m`;
+    }
+    return `${(distanceMeters / 1000).toFixed(1)} km`;
+  }
+  if (distanceKm == null) return "0.0 km";
+  if (distanceKm < 0.1) {
+    return `${Math.round(distanceKm * 1000)} m`;
+  }
+  return `${Number(distanceKm).toFixed(1)} km`;
 }

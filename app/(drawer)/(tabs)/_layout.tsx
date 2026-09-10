@@ -27,7 +27,7 @@ export function CustomTabBar(
         state,
         navigation,
         onOpenRepairModal,
-    }: BottomTabBarProps & { onOpenRepairModal: () => void }) {
+    }: BottomTabBarProps & { onOpenRepairModal: (activeTab: string) => void }) {
 
     const currentRoute = state.routes[state.index];
 
@@ -45,7 +45,7 @@ export function CustomTabBar(
 
                     const onPress = () => {
                         if (isCenter) {
-                            onOpenRepairModal();
+                            onOpenRepairModal(currentRoute?.name || "index");
                             return;
                         }
 
@@ -104,6 +104,7 @@ export default function TabLayout() {
     const {isAuthenticated, isLoading, userProfile, user} = useAuth();
     const router = useRouter();
     const [isRepairModalOpen, setIsRepairModalOpen] = useState(false);
+    const [fromTab, setFromTab] = useState<string>("index");
 
     if (isLoading) return null;
     if (!isAuthenticated) return <Redirect href="/(auth)/login"/>;
@@ -118,7 +119,10 @@ export default function TabLayout() {
                 tabBar={(props) => (
                     <CustomTabBar
                         {...props}
-                        onOpenRepairModal={() => setIsRepairModalOpen(true)}
+                        onOpenRepairModal={(activeTab) => {
+                            setFromTab(activeTab || "index");
+                            setIsRepairModalOpen(true);
+                        }}
                     />
                 )}
                 screenOptions={{
@@ -181,6 +185,7 @@ export default function TabLayout() {
                             car: data?.selectedCar,
                             location: data?.meetUpLocation,
                             category: data?.repairCategory,
+                            fromTab: fromTab || 'index',
                         },
                     });
                 }}

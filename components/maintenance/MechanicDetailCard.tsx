@@ -9,8 +9,10 @@ export type {MechanicDetailCardProps};
 export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                                                                           mechanic,
                                                                           distance,
+                                                                          distanceMeters,
                                                                           durationText,
                                                                           isBooked = false,
+                                                                          isArrived = false,
                                                                           onResearch,
                                                                           handleOnBooking,
                                                                           onClose,
@@ -54,7 +56,9 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                 <MechanicArrivingCard
                     mechanic={mechanic}
                     distance={distance}
+                    distanceMeters={distanceMeters}
                     durationText={durationText}
+                    isArrived={isArrived}
                     onClose={onClose}
                     onChat={onChat}
                     onCall={onCall}

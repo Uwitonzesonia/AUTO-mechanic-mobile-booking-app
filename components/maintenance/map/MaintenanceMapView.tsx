@@ -1,4 +1,4 @@
-import React, {forwardRef} from "react";
+import React, {forwardRef, useEffect, useState} from "react";
 import {Platform, StyleSheet} from "react-native";
 import MapView, {Marker, Polyline, PROVIDER_GOOGLE} from "react-native-maps";
 import {DARK_MAP_STYLE} from "@/constants/mapStyle";
@@ -31,6 +31,22 @@ export const MaintenanceMapView = forwardRef<MapView, MaintenanceMapViewProps>(
         },
         ref
     ) => {
+        const [userTracksViewChanges, setUserTracksViewChanges] = useState(true);
+
+        // Keep marker tracking active while searching, and briefly after search completes
+        // so the native map captures the snapshot without the radar circle
+        useEffect(() => {
+            if (isSearching) {
+                setUserTracksViewChanges(true);
+            } else {
+                setUserTracksViewChanges(true);
+                const timer = setTimeout(() => {
+                    setUserTracksViewChanges(false);
+                }, 600);
+                return () => clearTimeout(timer);
+            }
+        }, [isSearching]);
+
         return (
             <MapView
                 ref={ref}
@@ -73,7 +89,7 @@ export const MaintenanceMapView = forwardRef<MapView, MaintenanceMapViewProps>(
                     coordinate={userCoords}
                     anchor={{x: 0.5, y: 0.5}}
                     title="My Location"
-                    tracksViewChanges={isSearching}
+                    tracksViewChanges={userTracksViewChanges}
                 >
                     <UserLocationRadarMarker isSearching={isSearching}/>
                 </Marker>

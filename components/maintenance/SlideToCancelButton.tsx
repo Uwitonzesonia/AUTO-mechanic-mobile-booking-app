@@ -1,4 +1,4 @@
-import React, {useRef} from "react";
+import React, {useEffect, useRef} from "react";
 import {Animated, LayoutChangeEvent, PanResponder, StyleProp, StyleSheet, Text, View, ViewStyle,} from "react-native";
 import {Ionicons} from "@react-native-vector-icons/ionicons";
 
@@ -18,6 +18,15 @@ export const SlideToCancelButton: React.FC<SlideToCancelButtonProps> = ({
     const currentPanX = useRef<number>(0);
     const maxSlideRef = useRef<number>(130);
     const isCancelled = useRef(false);
+    const resetTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
+
+    useEffect(() => {
+        return () => {
+            if (resetTimerRef.current) {
+                clearTimeout(resetTimerRef.current);
+            }
+        };
+    }, []);
 
     // Keep maxSlideRef updated
     const updateMaxSlide = (width: number) => {
@@ -63,7 +72,7 @@ export const SlideToCancelButton: React.FC<SlideToCancelButtonProps> = ({
                             onCancel?.();
 
                             // Reset knob after short delay
-                            setTimeout(() => {
+                            resetTimerRef.current = setTimeout(() => {
                                 Animated.spring(pan, {
                                     toValue: 0,
                                     friction: 7,

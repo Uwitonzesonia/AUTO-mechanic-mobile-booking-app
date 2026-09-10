@@ -22,11 +22,16 @@ export default function MaintenanceScreen() {
         selectedMechanic,
         showDetailModal,
         isBooked,
+        isArrived,
+        distanceMeters,
+        durationText,
+        routeCoordinates,
         mechanicsToRender,
         handleSearchComplete,
         handleSelectMechanic,
         handleCloseDetail,
         handleCancelPress,
+        handleBackPress,
         handleResearch,
         handleConfirm,
         handleChat,
@@ -40,7 +45,10 @@ export default function MaintenanceScreen() {
 
     return (
         <LinearBgView style={styles.container}>
-            <TransparentHeaderCard onCancelPress={handleCancelPress}/>
+            <TransparentHeaderCard
+                onBackPress={handleBackPress}
+                onCancelPress={handleCancelPress}
+            />
 
             {userCoords ? (
                 <>
@@ -52,7 +60,7 @@ export default function MaintenanceScreen() {
                         isSearching={isSearching}
                         showDetailModal={showDetailModal}
                         isBooked={isBooked}
-                        routeCoordinates={route?.coordinates}
+                        routeCoordinates={routeCoordinates}
                         onSelectMechanic={handleSelectMechanic}
                     />
 
@@ -62,11 +70,13 @@ export default function MaintenanceScreen() {
                                 mechanic={selectedMechanic}
                                 distance={
                                     isBooked
-                                        ? (route?.distanceKm ?? selectedMechanic.current_location?.distanceKm)
+                                        ? (selectedMechanic.current_location?.distanceKm ?? route?.distanceKm)
                                         : selectedMechanic.current_location?.distanceKm
                                 }
-                                durationText={isBooked ? route?.formattedDuration : undefined}
+                                distanceMeters={isBooked ? distanceMeters : undefined}
+                                durationText={isBooked ? durationText : undefined}
                                 isBooked={isBooked}
+                                isArrived={isArrived}
                                 onResearch={handleResearch}
                                 handleOnBooking={handleConfirm}
                                 onClose={handleCloseDetail}

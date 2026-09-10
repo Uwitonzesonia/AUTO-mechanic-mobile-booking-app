@@ -10,7 +10,7 @@ import type {Mechanic} from "@/types/mechanic";
 export default function BookingScreen() {
     const navigation = useNavigation();
     const router = useRouter();
-    const {mechanicId} = useLocalSearchParams<{ mechanicId: string }>();
+    const {mechanicId, fromTab} = useLocalSearchParams<{ mechanicId: string; fromTab?: string }>();
 
     const [mechanic, setMechanic] = useState<Mechanic | undefined>(undefined);
     const [paymentMethod, setPaymentMethod] = useState<string | null>("cash");
@@ -35,6 +35,7 @@ export default function BookingScreen() {
             params: {
                 bookedMechanicId: String(targetId),
                 bookedTimestamp: String(Date.now()),
+                fromTab: fromTab || undefined,
             },
         });
     };
@@ -47,10 +48,20 @@ export default function BookingScreen() {
                     title="Booking info"
                     showBackButton
                     headerInMiddle
+                    onBackPress={() => {
+                        if (router.canGoBack()) {
+                            router.back();
+                        } else {
+                            router.replace({
+                                pathname: "/(drawer)/(tabs)/maintenance",
+                                params: {fromTab: fromTab || undefined},
+                            });
+                        }
+                    }}
                 />
             ),
         });
-    }, [navigation]);
+    }, [navigation, router, fromTab]);
 
     return (
         <ScrollView
