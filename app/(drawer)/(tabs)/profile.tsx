@@ -1,6 +1,5 @@
 import React, { useLayoutEffect, useRef, useState } from 'react';
 import {
-    Alert,
     Dimensions,
     FlatList,
     Image,
@@ -16,7 +15,7 @@ import { useNavigation } from "expo-router";
 import CustomHeader from "@/components/navigations/CustomHeader";
 import AntDesign from "@react-native-vector-icons/ant-design";
 import { LinearBgView } from "@/components/LinearBg";
-import { Avatar, Button, DrawingCameraIcon } from "@/components/ui";
+import { AlertDialog, Avatar, Button, DrawingCameraIcon } from "@/components/ui";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
 import CameraPickerModal from "@/components/camera/CameraPickerModal";
 
@@ -31,6 +30,8 @@ export default function ProfileScreen() {
 
     const [galleryImages, setGalleryImages] = useState<string[]>([]);
     const [selectedImage, setSelectedImage] = useState<string | null>(null);
+    const [deleteTargetIndex, setDeleteTargetIndex] = useState<number | null>(null);
+    const [isMoreDialogOpen, setIsMoreDialogOpen] = useState(false);
     const galleryListRef = useRef<FlatList>(null);
     const scrollIndexRef = useRef(0);
 
@@ -45,7 +46,7 @@ export default function ProfileScreen() {
                         <Button
                             type="ghost"
                             size="icon"
-                            onPress={() => Alert.alert("More", "More actions to be added.")}
+                            onPress={() => setIsMoreDialogOpen(true)}
                             icon={<AntDesign name={"more"} size={24} color="white" />}
                         />
                     }
@@ -81,22 +82,12 @@ export default function ProfileScreen() {
         }
     };
 
-    const handleDeleteGalleryImage = (indexToRemove: number) => {
-        Alert.alert(
-            "Remove Photo",
-            "Are you sure you want to remove this photo from your gallery?",
-            [
-                { text: "Cancel", style: "cancel" },
-                {
-                    text: "Delete",
-                    style: "destructive",
-                    onPress: () => {
-                        setGalleryImages(prev => prev.filter((_, idx) => idx !== indexToRemove));
-                        if (selectedImage) setSelectedImage(null);
-                    },
-                },
-            ]
-        );
+    const confirmDeleteGalleryImage = () => {
+        if (deleteTargetIndex !== null) {
+            setGalleryImages(prev => prev.filter((_, idx) => idx !== deleteTargetIndex));
+            if (selectedImage) setSelectedImage(null);
+            setDeleteTargetIndex(null);
+        }
     };
 
     return (
@@ -184,6 +175,7 @@ export default function ProfileScreen() {
                                     return (
                                         <Button
                                             type="custom"
+                                            size="custom"
                                             style={styles.addPhotoCard}
                                             onPress={() => setIsCameraOpen(true)}
                                             activeOpacity={0.75}
@@ -202,6 +194,7 @@ export default function ProfileScreen() {
                                     <View style={styles.galleryPhotoCard}>
                                         <Button
                                             type="custom"
+                                            size="custom"
                                             onPress={() => setSelectedImage(item)}
                                             activeOpacity={0.85}
                                             style={styles.photoTouchable}
@@ -210,10 +203,11 @@ export default function ProfileScreen() {
                                         </Button>
                                         <Button
                                             type="custom"
+                                            size="custom"
                                             style={styles.deletePhotoBtn}
-                                            onPress={() => handleDeleteGalleryImage(photoIndex)}
+                                            onPress={() => setDeleteTargetIndex(photoIndex)}
                                             activeOpacity={0.7}
-                                            icon={<Ionicons name="trash-outline" size={16} color="#fff" />}
+                                            icon={<Ionicons name="trash" size={16} color="#ffffff" />}
                                         />
                                     </View>
                                 );
@@ -232,6 +226,28 @@ export default function ProfileScreen() {
                 onSelectImage={handleSelectImage}
             />
 
+            {/* Delete Photo Confirmation Dialog */}
+            <AlertDialog
+                visible={deleteTargetIndex !== null}
+                variant="danger"
+                title="Remove Photo"
+                message="Are you sure you want to remove this photo from your gallery?"
+                confirmText="Delete"
+                cancelText="Cancel"
+                onConfirm={confirmDeleteGalleryImage}
+                onCancel={() => setDeleteTargetIndex(null)}
+            />
+
+            {/* More Actions Info Dialog */}
+            <AlertDialog
+                visible={isMoreDialogOpen}
+                variant="info"
+                title="Profile Options"
+                message="More profile settings and actions will be available in the upcoming update."
+                confirmText="Got it"
+                onConfirm={() => setIsMoreDialogOpen(false)}
+            />
+
             {/* Fullscreen Photo Viewer Modal */}
             {selectedImage && (
                 <Modal
@@ -243,6 +259,7 @@ export default function ProfileScreen() {
                     <SafeAreaView style={styles.modalBackdrop} edges={['top', 'bottom']}>
                         <Button
                             type="custom"
+                            size="custom"
                             style={styles.modalCloseBtn}
                             onPress={() => setSelectedImage(null)}
                             activeOpacity={0.7}
@@ -418,12 +435,16 @@ const styles = StyleSheet.create({
         position: 'absolute',
         top: 8,
         right: 8,
-        backgroundColor: 'rgba(0, 0, 0, 0.65)',
-        width: 28,
-        height: 28,
-        borderRadius: 14,
+        backgroundColor: 'rgba(0, 0, 0, 0.75)',
+        width: 32,
+        height: 32,
+        borderRadius: 16,
         alignItems: 'center',
         justifyContent: 'center',
+        zIndex: 30,
+        elevation: 6,
+        borderWidth: 1,
+        borderColor: 'rgba(255, 255, 255, 0.3)',
     },
     modalBackdrop: {
         flex: 1,

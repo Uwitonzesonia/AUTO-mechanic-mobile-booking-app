@@ -34,7 +34,9 @@ export default ({config}: ConfigContext): ExpoConfig => {
             predictiveBackGestureEnabled: false,
             package: "com.bunsenplus.automechanic",
             permissions: [
-                "android.permission.INTERNET"
+                "android.permission.INTERNET",
+                "android.permission.ACCESS_FINE_LOCATION",
+                "android.permission.ACCESS_COARSE_LOCATION"
             ]
         },
         web: {
@@ -45,6 +47,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
         plugins: [
             "@react-native-vector-icons/ionicons",
             "@react-native-vector-icons/material-design-icons",
+            "@react-native-vector-icons/fontawesome",
             "expo-router",
             [
                 "expo-splash-screen",
@@ -74,19 +77,6 @@ export default ({config}: ConfigContext): ExpoConfig => {
                     }
                 }
             ],
-            [
-                "expo-camera",
-                {
-                    cameraPermission: "Allow AUTO Mechanic to access your camera"
-                }
-            ],
-            [
-                "expo-media-library",
-                {
-                    photosPermission: "Allow AUTO Mechanic to access your photos",
-                    savePhotosPermission: "Allow AUTO Mechanic to save photos"
-                }
-            ],
             "expo-secure-store",
             [
                 "react-native-fbsdk-next",
@@ -96,6 +86,19 @@ export default ({config}: ConfigContext): ExpoConfig => {
                     displayName: "AUTO Mechanic",
                     advertiserIDCollectionEnabled: false,
                     autoLogAppEventsEnabled: false
+                }
+            ],
+            [
+                "expo-location",
+                {
+                    locationAlwaysAndWhenInUsePermission: "Allow AUTO Mechanic to access your location to find nearby mechanics."
+                }
+            ],
+            [
+                "react-native-maps",
+                {
+                    androidGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "",
+                    iosGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_IOS_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || ""
                 }
             ]
         ],

@@ -1,9 +1,11 @@
-import {Redirect, Tabs} from 'expo-router';
+import {Redirect, Tabs, useRouter} from 'expo-router';
 import {useAuth} from "@/hooks/useAuth";
-import React from "react";
+import React, {useState} from "react";
 import {GarageIcon, HomeIcon, ProfileIcon, TabIconProps, WalletIcon, WrenchIcon} from "@/utils/tabsIcons";
-import {Image, StyleSheet, Text, TouchableOpacity, View} from "react-native";
+import {Image, StyleSheet, Text, View} from "react-native";
 import CustomHeader from "@/components/navigations/CustomHeader";
+import {Button} from "@/components/ui";
+import RepairLocationModal from "@/components/maintenance/RepairLocationModal";
 
 export type BottomTabBarProps = Parameters<NonNullable<React.ComponentProps<typeof Tabs>["tabBar"]>>[0];
 
@@ -12,7 +14,7 @@ const ICONS: Record<string, React.FC<TabIconProps>> = {
     Home: HomeIcon,
     garage: GarageIcon,
     Garage: GarageIcon,
-    maintenance: WrenchIcon,
+    "maintenance": WrenchIcon,
     Tools: WrenchIcon,
     wallet: WalletIcon,
     Wallet: WalletIcon,
@@ -20,16 +22,33 @@ const ICONS: Record<string, React.FC<TabIconProps>> = {
     Profile: ProfileIcon,
 };
 
-export function CustomTabBar({state, navigation}: BottomTabBarProps) {
+export function CustomTabBar(
+    {
+        state,
+        navigation,
+        onOpenRepairModal,
+    }: BottomTabBarProps & { onOpenRepairModal: () => void }) {
+
+    const currentRoute = state.routes[state.index];
+
+    if (currentRoute.name === "maintenance") {
+        return null;
+    }
+
     return (
         <View style={styles.wrapper}>
             <View style={styles.bar}>
                 {state.routes.map((route, index) => {
                     const isFocused = state.index === index;
-                    const isCenter = route.name === "maintenance" || route.name === "Tools";
+                    const isCenter = route.name === "maintenance";
                     const Icon = ICONS[route.name] || HomeIcon;
 
                     const onPress = () => {
+                        if (isCenter) {
+                            onOpenRepairModal();
+                            return;
+                        }
+
                         const event = navigation.emit({
                             type: "tabPress",
                             target: route.key,
@@ -41,10 +60,11 @@ export function CustomTabBar({state, navigation}: BottomTabBarProps) {
                     };
 
                     if (isCenter) {
-                        // The raised, filled circular button — rendered outside the flat row
                         return (
-                            <TouchableOpacity
+                            <Button
                                 key={route.key}
+                                type="custom"
+                                size="custom"
                                 onPress={onPress}
                                 style={styles.centerButton}
                                 activeOpacity={0.85}
@@ -54,13 +74,15 @@ export function CustomTabBar({state, navigation}: BottomTabBarProps) {
                                     color={isFocused ? "#ffffff" : "#999999"}
                                     size={24}
                                 />
-                            </TouchableOpacity>
+                            </Button>
                         );
                     }
 
                     return (
-                        <TouchableOpacity
+                        <Button
                             key={route.key}
+                            type="custom"
+                            size="custom"
                             onPress={onPress}
                             style={styles.tabItem}
                             activeOpacity={0.7}
@@ -70,7 +92,7 @@ export function CustomTabBar({state, navigation}: BottomTabBarProps) {
                                 color={isFocused ? "#ffffff" : "#666666"}
                                 size={22}
                             />
-                        </TouchableOpacity>
+                        </Button>
                     );
                 })}
             </View>
@@ -80,6 +102,8 @@ export function CustomTabBar({state, navigation}: BottomTabBarProps) {
 
 export default function TabLayout() {
     const {isAuthenticated, isLoading, userProfile, user} = useAuth();
+    const router = useRouter();
+    const [isRepairModalOpen, setIsRepairModalOpen] = useState(false);
 
     if (isLoading) return null;
     if (!isAuthenticated) return <Redirect href="/(auth)/login"/>;
@@ -89,45 +113,79 @@ export default function TabLayout() {
     const initial = (displayName[0] || "U").toUpperCase();
 
     return (
-        <Tabs
-            tabBar={(props) => <CustomTabBar {...props} />}
-            screenOptions={{
-                header: (props) =>
-                    <CustomHeader
-                        title={props?.options?.title || props?.route?.name || "Home"}
-                        rightAction={
-                            <TouchableOpacity
-                                onPress={() => props.navigation.navigate("profile")}
-                                style={styles.profileHeaderButton}
-                                activeOpacity={0.7}
-                            >
-                                <View style={styles.avatarContainer}>
-                                    {avatarUri ? (
-                                        <Image
-                                            source={{uri: avatarUri}}
-                                            style={styles.avatarImage}
-                                        />
-                                    ) : (
-                                        <View style={styles.avatarFallback}>
-                                            <Text style={styles.avatarInitial}>{initial}</Text>
-                                        </View>
-                                    )}
-                                    <View style={styles.activeDot}/>
-                                </View>
-                                <Text style={styles.profileHeaderName} numberOfLines={2}>
-                                    {displayName}
-                                </Text>
-                            </TouchableOpacity>
-                        }
+        <>
+            <Tabs
+                tabBar={(props) => (
+                    <CustomTabBar
+                        {...props}
+                        onOpenRepairModal={() => setIsRepairModalOpen(true)}
                     />
-            }}
-        >
-            <Tabs.Screen name="index" options={{title: "Home"}}/>
-            <Tabs.Screen name="garage" options={{title: "Garage"}}/>
-            <Tabs.Screen name="maintenance" options={{title: "Maintenance"}}/>
-            <Tabs.Screen name="wallet" options={{title: "Wallet"}}/>
-            <Tabs.Screen name="profile" options={{title: "Profile"}}/>
-        </Tabs>
+                )}
+                screenOptions={{
+                    header: (props) =>
+                        <CustomHeader
+                            title={props?.options?.title || props?.route?.name || "Home"}
+                            rightAction={
+                                <Button
+                                    type="custom"
+                                    size="custom"
+                                    onPress={() => props.navigation.navigate("profile")}
+                                    style={styles.profileHeaderButton}
+                                    activeOpacity={0.7}
+                                >
+                                    <View style={styles.avatarContainer}>
+                                        {avatarUri ? (
+                                            <Image
+                                                source={{uri: avatarUri}}
+                                                style={styles.avatarImage}
+                                            />
+                                        ) : (
+                                            <View style={styles.avatarFallback}>
+                                                <Text style={styles.avatarInitial}>{initial}</Text>
+                                            </View>
+                                        )}
+                                        <View style={styles.activeDot}/>
+                                    </View>
+                                    <Text style={styles.profileHeaderName} numberOfLines={2}>
+                                        {displayName}
+                                    </Text>
+                                </Button>
+                            }
+                        />
+                }}
+            >
+                <Tabs.Screen name="index" options={{title: "Home"}}/>
+                <Tabs.Screen name="garage" options={{title: "Garage"}}/>
+                <Tabs.Screen
+                    name="maintenance"
+                    options={{title: "Maintenance", headerShown: false}}
+                    listeners={{
+                        tabPress: (e) => {
+                            e.preventDefault();
+                            setIsRepairModalOpen(true);
+                        }
+                    }}
+                />
+                <Tabs.Screen name="wallet" options={{title: "Wallet"}}/>
+                <Tabs.Screen name="profile" options={{title: "Profile"}}/>
+            </Tabs>
+            <RepairLocationModal
+                visible={isRepairModalOpen}
+                onClose={() => setIsRepairModalOpen(false)}
+                onStartSearch={(data) => {
+                    setIsRepairModalOpen(false);
+                    router.navigate({
+                        pathname: '/(drawer)/(tabs)/maintenance',
+                        params: {
+                            searchTrigger: String(Date.now()),
+                            car: data?.selectedCar,
+                            location: data?.meetUpLocation,
+                            category: data?.repairCategory,
+                        },
+                    });
+                }}
+            />
+        </>
     );
 }
 

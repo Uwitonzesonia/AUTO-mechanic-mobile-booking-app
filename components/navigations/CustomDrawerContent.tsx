@@ -1,5 +1,5 @@
 import React from "react";
-import {View, Text, TouchableOpacity, StyleSheet, Image} from "react-native";
+import {View, Text, StyleSheet, Image} from "react-native";
 import {LinearGradient} from "expo-linear-gradient";
 import {DrawerContentScrollView} from "expo-router/drawer";
 import {useAuth} from "@/hooks/useAuth";
@@ -8,6 +8,7 @@ import AntDesign from "@react-native-vector-icons/ant-design";
 import MaterialDesignIcons from "@react-native-vector-icons/material-design-icons";
 import {Ionicons} from "@react-native-vector-icons/ionicons";
 import {LinearBgView} from "@/components/LinearBg";
+import {Button} from "@/components/ui";
 
 const DrawerItems = [
     {
@@ -54,14 +55,15 @@ export default function CustomDrawerContent(props: any) {
                 {/* Header with Close Button in Top Corner & Logo centered under it */}
                 <View style={styles.header}>
                     <View style={styles.closeButtonContainer}>
-                        <TouchableOpacity
+                        <Button
+                            type="ghost"
+                            size="custom"
                             style={styles.closeButton}
                             onPress={() => props.navigation.closeDrawer()}
                             activeOpacity={0.7}
                             hitSlop={{top: 10, bottom: 10, left: 10, right: 10}}
-                        >
-                            <AntDesign name="close" size={22} color="#fff"/>
-                        </TouchableOpacity>
+                            icon={<AntDesign name="close" size={22} color="#fff"/>}
+                        />
                     </View>
                     <View style={styles.logoContainer}>
                         <Image
@@ -78,8 +80,10 @@ export default function CustomDrawerContent(props: any) {
                         const iconColor = isActive ? "#FFFFFF" : "#a6b1bd";
 
                         return (
-                            <TouchableOpacity
+                            <Button
                                 key={index}
+                                type="custom"
+                                size="custom"
                                 style={[styles.menuItem, isActive && styles.menuItemActive]}
                                 onPress={() => props.navigation.navigate(item.screen)}
                                 activeOpacity={0.7}
@@ -88,7 +92,7 @@ export default function CustomDrawerContent(props: any) {
                                 <Text style={[styles.menuItemText, isActive && styles.menuItemTextActive]}>
                                     {item.title.toUpperCase()}
                                 </Text>
-                            </TouchableOpacity>
+                            </Button>
                         );
                     })}
                 </View>
@@ -96,7 +100,9 @@ export default function CustomDrawerContent(props: any) {
 
             {/* Footer with Logout pinned to bottom without visible dividers */}
             <View style={[styles.footer, {paddingBottom: Math.max(insets.bottom, 24)}]}>
-                <TouchableOpacity
+                <Button
+                    type="custom"
+                    size="custom"
                     style={styles.logoutButton}
                     onPress={logout}
                     activeOpacity={0.7}
@@ -108,7 +114,7 @@ export default function CustomDrawerContent(props: any) {
                         style={styles.logoutIcon}
                     />
                     <Text style={styles.logoutText}>LOGOUT</Text>
-                </TouchableOpacity>
+                </Button>
             </View>
         </LinearBgView>
     );
