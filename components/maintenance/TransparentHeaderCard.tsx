@@ -40,6 +40,19 @@ export function TransparentHeaderCard({
         }
     };
 
+    const handleBack = () => {
+        if (onBackPress) {
+            onBackPress();
+        } else if (onCancelPress) {
+            onCancelPress();
+        } else {
+            if (router.canDismiss()) {
+                router.dismissAll();
+            }
+            router.replace("/(drawer)/(tabs)");
+        }
+    };
+
     const profileImg =
         avatarUri ||
         user?.photoURL ||
@@ -53,13 +66,13 @@ export function TransparentHeaderCard({
                     variant="secondary"
                     size="icon"
                     icon={<Ionicons name="chevron-back" size={24} color="#ffffff"/>}
-                    onPress={onBackPress ?? onCancelPress}
+                    onPress={handleBack}
                     style={styles.backButton}
                     accessibilityLabel="Go back"
                     hitSlop={{top: 8, bottom: 8, left: 8, right: 8}}
                 />
 
-                <SlideToCancelButton onCancel={onCancelPress}/>
+                <SlideToCancelButton onCancel={onCancelPress ?? handleBack}/>
 
                 <Pressable
                     onPress={handleProfilePress}

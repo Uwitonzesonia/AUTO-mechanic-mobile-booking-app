@@ -10,6 +10,7 @@ import {
 } from "react-native";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
 import { Button } from "@/components/ui/Button";
+import { TwoGearsSpinner } from "./TwoGearsSpinner";
 
 export interface BottomCardProps {
     title?: string;
@@ -49,9 +50,6 @@ export const BottomCard: React.FC<BottomCardProps> = ({
     // Searching progress (0 to 4 filled bars)
     const [activeBars, setActiveBars] = useState<number>(1);
     const [searchDone, setSearchDone] = useState<boolean>(!isSearching);
-
-    // Animation values for gear rotation
-    const gearSpin = useRef(new Animated.Value(0)).current;
 
     // Handle service toggle
     const handleToggleService = (service: string) => {
@@ -96,29 +94,6 @@ export const BottomCard: React.FC<BottomCardProps> = ({
         return () => clearInterval(interval);
     }, [isSearching]);
 
-    // Spin animation for gears when search completes
-    useEffect(() => {
-        if (searchDone) {
-            Animated.loop(
-                Animated.timing(gearSpin, {
-                    toValue: 1,
-                    duration: 6000,
-                    easing: Easing.linear,
-                    useNativeDriver: true,
-                })
-            ).start();
-        }
-    }, [searchDone, gearSpin]);
-
-    const spinInterpolate = gearSpin.interpolate({
-        inputRange: [0, 1],
-        outputRange: ["0deg", "360deg"],
-    });
-
-    const reverseSpinInterpolate = gearSpin.interpolate({
-        inputRange: [0, 1],
-        outputRange: ["0deg", "-360deg"],
-    });
 
     // Dynamic Title & Description based on Searching vs Ready state
     const displayTitle = !searchDone
@@ -188,28 +163,7 @@ export const BottomCard: React.FC<BottomCardProps> = ({
                 ) : (
                     /* Search Finished: Two Outlined Gears Settings Icon in Blue */
                     <View style={styles.gearsContainer}>
-                        <View style={styles.gearsPair}>
-                            {/* Main Outlined Gear */}
-                            <Animated.View
-                                style={{
-                                    transform: [{ rotate: spinInterpolate }],
-                                }}
-                            >
-                                <Ionicons name="settings-outline" size={26} color="#0094FF" />
-                            </Animated.View>
-
-                            {/* Secondary Interlocking Outlined Gear */}
-                            <Animated.View
-                                style={[
-                                    styles.secondaryGear,
-                                    {
-                                        transform: [{ rotate: reverseSpinInterpolate }],
-                                    },
-                                ]}
-                            >
-                                <Ionicons name="settings-outline" size={18} color="#0094FF" />
-                            </Animated.View>
-                        </View>
+                        <TwoGearsSpinner size={26} color="#0094FF" />
                     </View>
                 )}
             </View>
@@ -341,24 +295,5 @@ const styles = StyleSheet.create({
         justifyContent: "center",
         gap: 12,
         paddingVertical: 2,
-    },
-    gearsPair: {
-        flexDirection: "row",
-        alignItems: "center",
-        position: "relative",
-        width: 44,
-        height: 30,
-        justifyContent: "center",
-    },
-    secondaryGear: {
-        position: "absolute",
-        right: 0,
-        top: -4,
-    },
-    gearsReadyText: {
-        fontSize: 13.5,
-        fontWeight: "700",
-        color: "#FFFFFF",
-        letterSpacing: 0.2,
     },
 });

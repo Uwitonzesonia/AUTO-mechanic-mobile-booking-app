@@ -7,6 +7,7 @@ import {useMapboxRoute} from "@/hooks/useMapboxRoute";
 import {MOCK_MECHANICS} from "@/constants/mechanics";
 import {callPhoneNumber} from "@/utils/phone";
 import {getMechanicAvatarUrl} from "@/components/maintenance/detail/types";
+import {useMechanicMovement} from "@/hooks/useMechanicMovement";
 import type {Mechanic} from "@/types/mechanic";
 
 export function useMaintenanceCoordinator() {
@@ -18,6 +19,7 @@ export function useMaintenanceCoordinator() {
         category?: string;
         bookedMechanicId?: string;
         bookedTimestamp?: string;
+        fromTab?: string;
     }>();
 
     const mapRef = useRef<MapView | null>(null);
@@ -29,6 +31,52 @@ export function useMaintenanceCoordinator() {
 
     const {route, fetchRoute, clearRoute} = useMapboxRoute();
     const {userCoords, nearbyMechanics, hasPermission, refreshLocation} = useUserLocation(5);
+
+    const originCoords = useMemo(() => {
+        if (!selectedMechanic) return null;
+        const lat = selectedMechanic.current_location?.lat ?? selectedMechanic.location?.lat;
+        const lon = selectedMechanic.current_location?.lon ?? selectedMechanic.location?.lon;
+        if (lat == null || lon == null) return null;
+        return { latitude: lat, longitude: lon };
+    }, [selectedMechanic?.id]);
+
+    const {
+        currentLocation: movingLocation,
+        remainingRoute,
+        remainingDistanceMeters,
+        remainingDistanceKm,
+        remainingDurationText,
+        isArrived,
+        resetMovement,
+    } = useMechanicMovement({
+        isBooked,
+        route,
+        originCoords,
+        userCoords,
+    });
+
+    const activeMechanic = useMemo(() => {
+        if (!selectedMechanic) return null;
+        if (!isBooked || !movingLocation) return selectedMechanic;
+        return {
+            ...selectedMechanic,
+            current_location: {
+                lat: movingLocation.latitude,
+                lon: movingLocation.longitude,
+                distanceKm:
+                    remainingDistanceKm ??
+                    selectedMechanic.current_location?.distanceKm ??
+                    0,
+            },
+        };
+    }, [selectedMechanic, isBooked, movingLocation, remainingDistanceKm]);
+
+    // Ensure bottom card is shown when mechanic arrives at 5m
+    useEffect(() => {
+        if (isArrived && isBooked) {
+            setShowDetailModal(true);
+        }
+    }, [isArrived, isBooked]);
 
     const prevSearchTriggerRef = useRef<string | undefined>(params.searchTrigger);
     const prevBookedKeyRef = useRef<string | undefined>(undefined);
@@ -174,7 +222,8 @@ export function useMaintenanceCoordinator() {
         setSelectedMechanic(null);
         setIsBooked(false);
         clearRoute();
-    }, [clearRoute]);
+        resetMovement();
+    }, [clearRoute, resetMovement]);
 
     const handleSelectMechanic = useCallback(
         (mechanic: Mechanic) => {
@@ -182,6 +231,7 @@ export function useMaintenanceCoordinator() {
             setShowDetailModal(true);
             setIsBooked(false);
             clearRoute();
+            resetMovement();
 
             const lat = mechanic.current_location?.lat ?? mechanic.location?.lat;
             const lon = mechanic.current_location?.lon ?? mechanic.location?.lon;
@@ -198,7 +248,7 @@ export function useMaintenanceCoordinator() {
                 );
             }
         },
-        [clearRoute]
+        [clearRoute, resetMovement]
     );
 
     const resetToInitialMap = useCallback(
@@ -218,31 +268,22 @@ export function useMaintenanceCoordinator() {
         [userCoords]
     );
 
-    const handleCloseDetail = useCallback(() => {
-        setShowDetailModal(false);
-        setSelectedMechanic(null);
-        setIsBooked(false);
-        clearRoute();
-        prevBookedKeyRef.current = undefined;
-        router.setParams({
-            bookedMechanicId: undefined,
-            bookedTimestamp: undefined,
-        });
-        resetToInitialMap();
-    }, [clearRoute, resetToInitialMap, router]);
-
-    const handleBackPress = useCallback(() => {
-        if (showDetailModal || selectedMechanic || isBooked) {
-            handleCloseDetail();
-        } else if (router.canGoBack()) {
-            router.back();
-        } else {
-            router.replace("/(drawer)/(tabs)");
+    const getTargetTabPath = useCallback((tab?: string) => {
+        if (tab === "garage") {
+            return "/(drawer)/(tabs)/garage" as const;
         }
-    }, [showDetailModal, selectedMechanic, isBooked, handleCloseDetail, router]);
+        if (tab === "wallet") {
+            return "/(drawer)/(tabs)/wallet" as const;
+        }
+        if (tab === "profile") {
+            return "/(drawer)/(tabs)/profile" as const;
+        }
+        return "/(drawer)/(tabs)" as const;
+    }, []);
 
-    const handleCancelPress = useCallback(() => {
+    const handleExitToTabs = useCallback(() => {
         clearRoute();
+        resetMovement();
         setSelectedMechanic(null);
         setShowDetailModal(false);
         setIsBooked(false);
@@ -253,30 +294,67 @@ export function useMaintenanceCoordinator() {
             bookedMechanicId: undefined,
             bookedTimestamp: undefined,
             searchTrigger: undefined,
+            fromTab: undefined,
         });
 
+        if (router.canDismiss()) {
+            router.dismissAll();
+        }
+
+        const targetPath = getTargetTabPath(params.fromTab);
+        router.replace(targetPath);
+    }, [clearRoute, resetMovement, router, getTargetTabPath, params.fromTab]);
+
+    const handleCloseDetail = useCallback(() => {
+        if (isBooked) {
+            handleExitToTabs();
+            return;
+        }
+        setShowDetailModal(false);
+        setSelectedMechanic(null);
+        clearRoute();
+        resetMovement();
+        prevBookedKeyRef.current = undefined;
+        router.setParams({
+            bookedMechanicId: undefined,
+            bookedTimestamp: undefined,
+        });
         resetToInitialMap();
-    }, [clearRoute, resetToInitialMap, router]);
+    }, [isBooked, handleExitToTabs, clearRoute, resetMovement, resetToInitialMap, router]);
+
+    const handleBackPress = useCallback(() => {
+        handleExitToTabs();
+    }, [handleExitToTabs]);
+
+    const handleCancelPress = useCallback(() => {
+        handleExitToTabs();
+    }, [handleExitToTabs]);
 
     // Handle Android hardware back press
     useEffect(() => {
         const onHardwareBack = () => {
-            if (showDetailModal || selectedMechanic || isBooked) {
+            if (isBooked) {
+                handleExitToTabs();
+                return true;
+            }
+            if (showDetailModal || selectedMechanic) {
                 handleCloseDetail();
                 return true;
             }
-            return false;
+            handleExitToTabs();
+            return true;
         };
 
         const backSub = BackHandler.addEventListener("hardwareBackPress", onHardwareBack);
         return () => backSub.remove();
-    }, [showDetailModal, selectedMechanic, isBooked, handleCloseDetail]);
+    }, [isBooked, showDetailModal, selectedMechanic, handleCloseDetail, handleExitToTabs]);
 
     const handleResearch = useCallback(() => {
         setShowDetailModal(false);
         setSelectedMechanic(null);
         setIsBooked(false);
         clearRoute();
+        resetMovement();
         setIsSearching(true);
         refreshLocation();
 
@@ -291,16 +369,19 @@ export function useMaintenanceCoordinator() {
                 800
             );
         }
-    }, [refreshLocation, userCoords, clearRoute]);
+    }, [refreshLocation, userCoords, clearRoute, resetMovement]);
 
     const handleConfirm = useCallback(
         (mechanic: Mechanic) => {
             router.push({
                 pathname: "/(drawer)/(tabs)/maintenance/booking",
-                params: {mechanicId: mechanic.id},
+                params: {
+                    mechanicId: mechanic.id,
+                    fromTab: params.fromTab,
+                },
             });
         },
-        [router]
+        [router, params.fromTab]
     );
 
     const handleChat = useCallback(
@@ -318,14 +399,15 @@ export function useMaintenanceCoordinator() {
     }, []);
 
     const mechanicsToRender = useMemo(() => {
-        if (
-            selectedMechanic &&
-            !nearbyMechanics.some((m) => String(m.id) === String(selectedMechanic.id))
-        ) {
-            return [...nearbyMechanics, selectedMechanic];
+        if (!activeMechanic) return nearbyMechanics;
+        const exists = nearbyMechanics.some((m) => String(m.id) === String(activeMechanic.id));
+        if (exists) {
+            return nearbyMechanics.map((m) =>
+                String(m.id) === String(activeMechanic.id) ? activeMechanic : m
+            );
         }
-        return nearbyMechanics;
-    }, [nearbyMechanics, selectedMechanic]);
+        return [...nearbyMechanics, activeMechanic];
+    }, [nearbyMechanics, activeMechanic]);
 
     return {
         mapRef,
@@ -334,9 +416,15 @@ export function useMaintenanceCoordinator() {
         refreshLocation,
         route,
         isSearching,
-        selectedMechanic,
+        selectedMechanic: activeMechanic,
         showDetailModal,
         isBooked,
+        isArrived,
+        distanceMeters: remainingDistanceMeters,
+        distanceKm: remainingDistanceKm,
+        durationText: remainingDurationText ?? route?.formattedDuration,
+        routeCoordinates:
+            isBooked && remainingRoute.length > 0 ? remainingRoute : route?.coordinates,
         mechanicsToRender,
         handleSearchComplete,
         handleSelectMechanic,

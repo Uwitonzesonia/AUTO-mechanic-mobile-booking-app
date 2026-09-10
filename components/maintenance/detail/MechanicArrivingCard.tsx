@@ -5,6 +5,7 @@ import {Ionicons} from "@react-native-vector-icons/ionicons";
 import {Avatar} from "@/components/ui/Avatar";
 import {Button} from "@/components/ui/Button";
 import {callPhoneNumber} from "@/utils/phone";
+import {TwoGearsSpinner} from "../TwoGearsSpinner";
 import type {Mechanic} from "@/types/mechanic";
 import {
     formatDistance,
@@ -15,8 +16,10 @@ import {
 
 interface MechanicArrivingCardProps {
     mechanic: Mechanic;
-    distance?: number;
-    durationText?: string;
+    distance?: number | null;
+    distanceMeters?: number | null;
+    durationText?: string | null;
+    isArrived?: boolean;
     onClose?: () => void;
     onChat?: (mechanic: Mechanic) => void;
     onCall?: (mechanic: Mechanic) => void;
@@ -25,7 +28,9 @@ interface MechanicArrivingCardProps {
 export function MechanicArrivingCard({
                                          mechanic,
                                          distance,
+                                         distanceMeters,
                                          durationText,
+                                         isArrived = false,
                                          onClose,
                                          onChat,
                                          onCall,
@@ -37,13 +42,20 @@ export function MechanicArrivingCard({
 
     const rating = mechanic.rating != null ? Number(mechanic.rating).toFixed(1) : "0.0";
     const experience = mechanic.years_experience ?? 0;
-    const etaText = durationText ? durationText.replace(/\s*mins?/i, "min") : "5min";
+
+    const isArrivedState = isArrived || (distanceMeters != null && distanceMeters <= 5);
+
+    const etaText = isArrivedState
+        ? "Arrived"
+        : durationText
+        ? durationText.replace(/\s*mins?/i, "min")
+        : "5min";
 
     const resolvedDistance =
         distance ??
         mechanic.current_location?.distanceKm ??
         mechanic.location?.distanceKm;
-    const distanceText = formatDistance(resolvedDistance);
+    const distanceText = formatDistance(resolvedDistance, distanceMeters);
 
     const expertise =
         mechanic.expertise && mechanic.expertise.length > 0
@@ -71,7 +83,9 @@ export function MechanicArrivingCard({
             <View style={styles.handlePill}/>
 
             <View style={styles.arrivalRow}>
-                <Text style={styles.arrivalTitle}>Arriving {etaText}</Text>
+                <Text style={styles.arrivalTitle}>
+                    {isArrivedState ? "Arrived" : `Arriving ${etaText}`}
+                </Text>
                 <Text style={styles.distanceSubtitle}>{distanceText} away</Text>
             </View>
 
@@ -114,34 +128,46 @@ export function MechanicArrivingCard({
                 <Text style={styles.detailValue}>{experience}yrs</Text>
             </View>
 
-            <View style={styles.actionsRow}>
-                <Button
-                    variant="custom"
-                    size="icon"
-                    icon={<Ionicons name="close-outline" size={22} color="#ffffff"/>}
-                    style={styles.cancelButton}
-                    onPress={onClose}
-                    accessibilityLabel="Cancel mechanic"
-                />
+            {isArrivedState ? (
+                <View style={styles.vehicleCheckContainer}>
+                    <TwoGearsSpinner size={24} color="#0094FF" />
+                    <View style={styles.vehicleCheckTextContainer}>
+                        <Text style={styles.vehicleCheckTitle}>Vehicle check in progress</Text>
+                        <Text style={styles.vehicleCheckSubtitle}>
+                            Awaiting Autohelp repair info for your confirmation.
+                        </Text>
+                    </View>
+                </View>
+            ) : (
+                <View style={styles.actionsRow}>
+                    <Button
+                        variant="custom"
+                        size="icon"
+                        icon={<Ionicons name="close-outline" size={22} color="#ffffff"/>}
+                        style={styles.cancelButton}
+                        onPress={onClose}
+                        accessibilityLabel="Cancel mechanic"
+                    />
 
-                <Button
-                    variant="custom"
-                    size="icon"
-                    icon={<Ionicons name="chatbubble-outline" size={22} color="#64748B"/>}
-                    style={[styles.actionWhiteButton, {transform: "scaleX(-1)"}]}
-                    onPress={handleChatPress}
-                    accessibilityLabel="Chat with mechanic"
-                />
+                    <Button
+                        variant="custom"
+                        size="icon"
+                        icon={<Ionicons name="chatbubble-outline" size={22} color="#64748B"/>}
+                        style={[styles.actionWhiteButton, {transform: "scaleX(-1)"}]}
+                        onPress={handleChatPress}
+                        accessibilityLabel="Chat with mechanic"
+                    />
 
-                <Button
-                    variant="custom"
-                    size="icon"
-                    icon={<Ionicons name="call-outline" size={22} color="#64748B"/>}
-                    style={styles.actionWhiteButton}
-                    onPress={handleCallPress}
-                    accessibilityLabel="Call mechanic"
-                />
-            </View>
+                    <Button
+                        variant="custom"
+                        size="icon"
+                        icon={<Ionicons name="call-outline" size={22} color="#64748B"/>}
+                        style={styles.actionWhiteButton}
+                        onPress={handleCallPress}
+                        accessibilityLabel="Call mechanic"
+                    />
+                </View>
+            )}
         </View>
     );
 }
@@ -291,5 +317,34 @@ const styles = StyleSheet.create({
         padding: 0,
         paddingHorizontal: 0,
         paddingVertical: 0,
+    },
+    vehicleCheckContainer: {
+        flexDirection: "row",
+        alignItems: "center",
+        backgroundColor: "rgba(255, 255, 255, 0.04)",
+        borderRadius: 16,
+        paddingVertical: 12,
+        paddingHorizontal: 14,
+        marginTop: 14,
+        gap: 12,
+        borderWidth: 1,
+        borderColor: "rgba(0, 148, 255, 0.25)",
+    },
+    vehicleCheckTextContainer: {
+        flex: 1,
+        justifyContent: "center",
+    },
+    vehicleCheckTitle: {
+        fontSize: 14,
+        fontWeight: "700",
+        color: "#FFFFFF",
+        letterSpacing: 0.2,
+        marginBottom: 2,
+    },
+    vehicleCheckSubtitle: {
+        fontSize: 12,
+        fontWeight: "500",
+        color: "#94A3B8",
+        lineHeight: 16,
     },
 });

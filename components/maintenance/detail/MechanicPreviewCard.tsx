@@ -14,7 +14,7 @@ import {
 
 interface MechanicPreviewCardProps {
   mechanic: Mechanic;
-  distance?: number;
+  distance?: number | null;
   onResearch?: () => void;
   onConfirm?: (mechanic: Mechanic) => void;
   onClose?: () => void;
