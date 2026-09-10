@@ -1,56 +1,75 @@
-import { useFonts } from 'expo-font';
-import { DarkTheme, DefaultTheme, Stack, ThemeProvider } from 'expo-router';
-import * as SplashScreen from 'expo-splash-screen';
-import { useEffect } from 'react';
-import 'react-native-reanimated';
-
-import { useColorScheme } from '@/components/useColorScheme';
-
-export {
-  // Catch any errors thrown by the Layout component.
-  ErrorBoundary,
-} from 'expo-router';
-
-export const unstable_settings = {
-  // Ensure that reloading on `/modal` keeps a back button present.
-  initialRouteName: '(tabs)',
-};
-
-// Prevent the splash screen from auto-hiding before asset loading is complete.
-SplashScreen.preventAutoHideAsync();
+import React, {useEffect, useState} from "react";
+import {StyleSheet, View} from "react-native";
+import {Stack, useRouter, useSegments} from "expo-router";
+import * as SplashScreen from "expo-splash-screen";
+import {SafeAreaView} from "react-native-safe-area-context";
+import { AuthProvider, NetworkProvider } from "@/context";
+import {useAuth} from "@/hooks/useAuth";
+import AnimatedSplashScreen from "@/components/splash/AnimatedSplashScreen";
+import {LoadingOverlay} from "@/components/ui";
 
 export default function RootLayout() {
-  const [loaded, error] = useFonts({
-    SpaceMono: require('../assets/fonts/SpaceMono-Regular.ttf'),
-  });
+    return (
+        <NetworkProvider>
+            <AuthProvider>
+                <SafeAreaView style={styles.safeArea}>
+                    <RootContent/>
+                </SafeAreaView>
+            </AuthProvider>
+        </NetworkProvider>
+    );
+}
 
-  // Expo Router uses Error Boundaries to catch errors in the navigation tree.
-  useEffect(() => {
-    if (error) throw error;
-  }, [error]);
+function RootContent() {
+    const [showSplash, setShowSplash] = useState(true);
 
-  useEffect(() => {
-    if (loaded) {
-      SplashScreen.hideAsync();
+    if (showSplash) {
+        return <AnimatedSplashScreen onFinish={() => setShowSplash(false)}/>;
     }
-  }, [loaded]);
 
-  if (!loaded) {
-    return null;
-  }
-
-  return <RootLayoutNav />;
+    return <RootLayoutNav/>;
 }
 
 function RootLayoutNav() {
-  const colorScheme = useColorScheme();
+    const {isAuthenticated, isLoading} = useAuth();
+    const segments = useSegments();
+    const router = useRouter();
 
-  return (
-    <ThemeProvider value={colorScheme === 'dark' ? DarkTheme : DefaultTheme}>
-      <Stack>
-        <Stack.Screen name="(tabs)" options={{ headerShown: false }} />
-        <Stack.Screen name="modal" options={{ presentation: 'modal' }} />
-      </Stack>
-    </ThemeProvider>
-  );
+    useEffect(() => {
+        if (isLoading) return;
+
+        const inAuthGroup = segments[0] === "(auth)";
+        const inDrawerGroup = segments[0] === "(drawer)";
+
+        if (!isAuthenticated && inDrawerGroup) {
+            router.replace("/(auth)/login");
+        } else if (isAuthenticated && (inAuthGroup || segments[0] === "onboarding")) {
+            router.replace("/(drawer)/(tabs)");
+        }
+
+        SplashScreen.hideAsync();
+    }, [isAuthenticated, isLoading, segments]);
+
+    return (
+        <View style={styles.container}>
+            <LoadingOverlay visible={!!isLoading}/>
+            <Stack screenOptions={{headerShown: false}}>
+                <Stack.Screen name="index" options={{headerShown: false}}/>
+                <Stack.Screen name="onboarding" options={{headerShown: false}}/>
+                <Stack.Screen name="(auth)" options={{headerShown: false}}/>
+                <Stack.Screen name="(drawer)" options={{headerShown: false}}/>
+            </Stack>
+        </View>
+    );
 }
+
+const styles = StyleSheet.create({
+    safeArea: {
+        flex: 1,
+        backgroundColor: "#0f151d",
+    },
+    container: {
+        flex: 1,
+        backgroundColor: "#0f151d",
+    },
+});
