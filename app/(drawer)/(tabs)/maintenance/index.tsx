@@ -7,6 +7,7 @@ import {MechanicDetailCard} from "@/components/maintenance/MechanicDetailCard";
 import {TransparentHeaderCard} from "@/components/maintenance/TransparentHeaderCard";
 import {MaintenanceMapView} from "@/components/maintenance/map/MaintenanceMapView";
 import {LocationStateView} from "@/components/maintenance/map/LocationStateView";
+import {RatingModal} from "@/components/maintenance/modal/RatingModal";
 import {useMaintenanceCoordinator} from "@/hooks/useMaintenanceCoordinator";
 
 export default function MaintenanceScreen() {
@@ -23,6 +24,7 @@ export default function MaintenanceScreen() {
         showDetailModal,
         isBooked,
         isArrived,
+        isInRepair,
         distanceMeters,
         durationText,
         routeCoordinates,
@@ -36,6 +38,10 @@ export default function MaintenanceScreen() {
         handleConfirm,
         handleChat,
         handleCall,
+        showRatingModal,
+        ratingMechanic,
+        handleCloseRatingModal,
+        handleOpenRatingModal,
         searchTrigger,
     } = useMaintenanceCoordinator();
 
@@ -45,54 +51,68 @@ export default function MaintenanceScreen() {
 
     return (
         <LinearBgView style={styles.container}>
-            <TransparentHeaderCard
-                onBackPress={handleBackPress}
-                onCancelPress={handleCancelPress}
-            />
+            {!showRatingModal && (
+                <TransparentHeaderCard
+                    onBackPress={handleBackPress}
+                    onCancelPress={handleCancelPress}
+                />
+            )}
 
             {userCoords ? (
                 <>
                     <MaintenanceMapView
                         ref={mapRef}
                         userCoords={userCoords}
-                        mechanics={mechanicsToRender}
-                        selectedMechanic={selectedMechanic}
-                        isSearching={isSearching}
-                        showDetailModal={showDetailModal}
-                        isBooked={isBooked}
-                        routeCoordinates={routeCoordinates}
+                        mechanics={showRatingModal ? [] : mechanicsToRender}
+                        selectedMechanic={showRatingModal ? null : selectedMechanic}
+                        isSearching={showRatingModal ? false : isSearching}
+                        showDetailModal={showRatingModal ? false : showDetailModal}
+                        isBooked={showRatingModal ? false : isBooked}
+                        routeCoordinates={showRatingModal ? [] : routeCoordinates}
                         onSelectMechanic={handleSelectMechanic}
+                        hideMarkers={showRatingModal}
                     />
 
-                    <View style={styles.bottomContainer} pointerEvents="box-none">
-                        {showDetailModal && selectedMechanic && (
-                            <MechanicDetailCard
-                                mechanic={selectedMechanic}
-                                distance={
-                                    isBooked
-                                        ? (selectedMechanic.current_location?.distanceKm ?? route?.distanceKm)
-                                        : selectedMechanic.current_location?.distanceKm
-                                }
-                                distanceMeters={isBooked ? distanceMeters : undefined}
-                                durationText={isBooked ? durationText : undefined}
-                                isBooked={isBooked}
-                                isArrived={isArrived}
-                                onResearch={handleResearch}
-                                handleOnBooking={handleConfirm}
-                                onClose={handleCloseDetail}
-                                onChat={handleChat}
-                                onCall={handleCall}
-                            />
-                        )}
+                    {!showRatingModal && (
+                        <View style={styles.bottomContainer} pointerEvents="box-none">
+                            {showDetailModal && selectedMechanic && (
+                                <MechanicDetailCard
+                                    mechanic={selectedMechanic}
+                                    distance={
+                                        isBooked
+                                            ? (selectedMechanic.current_location?.distanceKm ?? route?.distanceKm)
+                                            : selectedMechanic.current_location?.distanceKm
+                                    }
+                                    distanceMeters={isBooked ? distanceMeters : undefined}
+                                    durationText={isBooked ? durationText : undefined}
+                                    isBooked={isBooked}
+                                    isArrived={isArrived}
+                                    isInRepair={isInRepair}
+                                    onResearch={handleResearch}
+                                    handleOnBooking={handleConfirm}
+                                    onClose={handleCloseDetail}
+                                    onChat={handleChat}
+                                    onCall={handleCall}
+                                    onRate={handleOpenRatingModal}
+                                />
+                            )}
 
-                        {!isBooked && (
-                            <BottomCard
-                                key={searchTrigger || "initial-search"}
-                                isSearching={isSearching}
-                                onSearchComplete={handleSearchComplete}
-                            />
-                        )}
-                    </View>
+                            {!isBooked && (
+                                <BottomCard
+                                    key={searchTrigger || "initial-search"}
+                                    isSearching={isSearching}
+                                    onSearchComplete={handleSearchComplete}
+                                />
+                            )}
+                        </View>
+                    )}
+
+                    <RatingModal
+                        visible={showRatingModal}
+                        mechanic={ratingMechanic}
+                        onClose={handleCloseRatingModal}
+                        onSubmit={handleCloseRatingModal}
+                    />
                 </>
             ) : (
                 <LocationStateView

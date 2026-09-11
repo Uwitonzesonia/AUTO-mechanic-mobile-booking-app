@@ -4,6 +4,7 @@ import {useRouter} from "expo-router";
 import {Ionicons} from "@react-native-vector-icons/ionicons";
 import {Avatar} from "@/components/ui/Avatar";
 import {Button} from "@/components/ui/Button";
+import {Rating} from "@/components/ui/Rating";
 import {callPhoneNumber} from "@/utils/phone";
 import {TwoGearsSpinner} from "../TwoGearsSpinner";
 import type {Mechanic} from "@/types/mechanic";
@@ -20,9 +21,11 @@ interface MechanicArrivingCardProps {
     distanceMeters?: number | null;
     durationText?: string | null;
     isArrived?: boolean;
+    isInRepair?: boolean;
     onClose?: () => void;
     onChat?: (mechanic: Mechanic) => void;
     onCall?: (mechanic: Mechanic) => void;
+    onRate?: (mechanic: Mechanic) => void;
 }
 
 export function MechanicArrivingCard({
@@ -31,19 +34,20 @@ export function MechanicArrivingCard({
                                          distanceMeters,
                                          durationText,
                                          isArrived = false,
+                                         isInRepair = false,
                                          onClose,
                                          onChat,
                                          onCall,
+                                         onRate,
                                      }: MechanicArrivingCardProps) {
     const router = useRouter();
     const name = getMechanicName(mechanic);
     const initial = getMechanicInitial(name);
     const avatarUrl = getMechanicAvatarUrl(mechanic);
 
-    const rating = mechanic.rating != null ? Number(mechanic.rating).toFixed(1) : "0.0";
     const experience = mechanic.years_experience ?? 0;
 
-    const isArrivedState = isArrived || (distanceMeters != null && distanceMeters <= 5);
+    const isArrivedState = isArrived || isInRepair || (distanceMeters != null && distanceMeters <= 5);
 
     const etaText = isArrivedState
         ? "Arrived"
@@ -110,10 +114,11 @@ export function MechanicArrivingCard({
                     </Text>
                 </View>
 
-                <View style={styles.ratingBadge}>
-                    <Ionicons name="star" size={13} color="#FFB800"/>
-                    <Text style={styles.ratingText}>{rating}</Text>
-                </View>
+                <Rating
+                    mechanic={mechanic}
+                    variant="badge"
+                    onPress={onRate ? () => onRate(mechanic) : undefined}
+                />
             </View>
 
             <View style={styles.detailRow}>

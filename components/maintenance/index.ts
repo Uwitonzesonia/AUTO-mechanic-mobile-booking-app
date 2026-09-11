@@ -17,3 +17,4 @@ export * from './PaymentMethodSelector';
 export * from './map/MaintenanceMapView';
 export * from './map/LocationStateView';
 export * from './TwoGearsSpinner';
+export * from './modal/RatingModal';

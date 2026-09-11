@@ -3,7 +3,6 @@
   "main": "expo-router/entry",
   "version": "1.0.0",
   "dependencies": {
-    "@expo/vector-icons": "^15.0.2",
     "@react-native-google-signin/google-signin": "^16.1.4",
     "@react-native-vector-icons/ant-design": "^13.1.2",
     "@react-native-vector-icons/fontawesome": "^13.1.3",
@@ -52,7 +51,16 @@
     "web": "expo start --web"
   },
   "jest": {
-    "preset": "jest-expo"
+    "preset": "jest-expo",
+    "collectCoverage": true,
+    "collectCoverageFrom": [
+      "**/*.{ts,tsx,js,jsx}",
+      "!**/coverage/**",
+      "!**/node_modules/**",
+      "!**/babel.config.js",
+      "!**/expo-env.d.ts",
+      "!**/.expo/**"
+    ]
   },
   "private": true
 }
