@@ -6,11 +6,9 @@
 [![Firebase](https://img.shields.io/badge/Firebase-Auth%20%26%20Store-FFCA28?style=for-the-badge&logo=firebase&logoColor=black)](https://firebase.google.com/)
 [![Mapbox](https://img.shields.io/badge/Mapbox-Directions%20API-000000?style=for-the-badge&logo=mapbox&logoColor=white)](https://www.mapbox.com/)
 [![License: MIT](https://img.shields.io/badge/License-MIT-yellow.svg?style=for-the-badge)](https://opensource.org/licenses/MIT)
+[![Coverage](./badges/coverage.svg)](#-testing-strategy)
 
 An on-demand mobile automotive repair and breakdown assistance application built with **React Native**, **Expo SDK 57**, and **TypeScript**. **AUTO Mechanic** connects drivers directly with certified nearby auto mechanics, offering real-time geolocation tracking, upfront pricing, route visualization, and booking management.
-
----
-[![Coverage](https://img.shields.io/codecov/c/github/Uwitonzesonia/AUTO-mechanic-mobile-booking-app?style=for-the-badge&logo=codecov&logoColor=white)](https://codecov.io/gh/Uwitonzesonia/AUTO-mechanic-mobile-booking-app)
 
 ---
 ## 📑 Table of Contents
