@@ -15,6 +15,7 @@ interface MaintenanceMapViewProps {
     isBooked: boolean;
     routeCoordinates?: { latitude: number; longitude: number }[];
     onSelectMechanic: (mechanic: Mechanic) => void;
+    hideMarkers?: boolean;
 }
 
 export const MaintenanceMapView = forwardRef<MapView, MaintenanceMapViewProps>(
@@ -28,6 +29,7 @@ export const MaintenanceMapView = forwardRef<MapView, MaintenanceMapViewProps>(
             isBooked,
             routeCoordinates,
             onSelectMechanic,
+            hideMarkers = false,
         },
         ref
     ) => {
@@ -62,7 +64,7 @@ export const MaintenanceMapView = forwardRef<MapView, MaintenanceMapViewProps>(
                     longitudeDelta: 0.05,
                 }}
             >
-                {isBooked && routeCoordinates && routeCoordinates.length > 0 && (
+                {!hideMarkers && isBooked && routeCoordinates && routeCoordinates.length > 0 && (
                     <>
                         {/* Outer polyline shadow / glow */}
                         <Polyline
@@ -83,18 +85,20 @@ export const MaintenanceMapView = forwardRef<MapView, MaintenanceMapViewProps>(
                     </>
                 )}
 
-                <Marker
-                    key="user-location-marker"
-                    identifier="user-location-marker"
-                    coordinate={userCoords}
-                    anchor={{x: 0.5, y: 0.5}}
-                    title="My Location"
-                    tracksViewChanges={userTracksViewChanges}
-                >
-                    <UserLocationRadarMarker isSearching={isSearching}/>
-                </Marker>
+                {!hideMarkers && (
+                    <Marker
+                        key="user-location-marker"
+                        identifier="user-location-marker"
+                        coordinate={userCoords}
+                        anchor={{x: 0.5, y: 0.5}}
+                        title="My Location"
+                        tracksViewChanges={userTracksViewChanges}
+                    >
+                        <UserLocationRadarMarker isSearching={isSearching}/>
+                    </Marker>
+                )}
 
-                {mechanics.map((mechanic) => {
+                {!hideMarkers && mechanics.map((mechanic) => {
                     const isVisible =
                         !isSearching &&
                         (!showDetailModal || selectedMechanic?.id === mechanic.id);

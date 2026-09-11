@@ -6,7 +6,7 @@ import {useUserLocation} from "@/hooks/useUserLocation";
 import {useMapboxRoute} from "@/hooks/useMapboxRoute";
 import {MOCK_MECHANICS} from "@/constants/mechanics";
 import {callPhoneNumber} from "@/utils/phone";
-import {getMechanicAvatarUrl} from "@/components/maintenance/detail/types";
+import {formatRealisticDuration, getMechanicAvatarUrl} from "@/components/maintenance/detail/types";
 import {useMechanicMovement} from "@/hooks/useMechanicMovement";
 import type {Mechanic} from "@/types/mechanic";
 
@@ -20,14 +20,23 @@ export function useMaintenanceCoordinator() {
         bookedMechanicId?: string;
         bookedTimestamp?: string;
         fromTab?: string;
+        price?: string;
+        duration?: string;
+        showRatingModal?: string;
+        ratingMechanicId?: string;
+        ratingMechanicData?: string;
     }>();
 
     const mapRef = useRef<MapView | null>(null);
+    const arrivalTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
     const [isSearching, setIsSearching] = useState(true);
     const [selectedMechanic, setSelectedMechanic] = useState<Mechanic | null>(null);
     const [showDetailModal, setShowDetailModal] = useState(false);
     const [isBooked, setIsBooked] = useState(false);
+    const [isInRepair, setIsInRepair] = useState(false);
+    const [showRatingModal, setShowRatingModal] = useState(false);
+    const [ratingMechanic, setRatingMechanic] = useState<Mechanic | null>(null);
 
     const {route, fetchRoute, clearRoute} = useMapboxRoute();
     const {userCoords, nearbyMechanics, hasPermission, refreshLocation} = useUserLocation(5);
@@ -71,26 +80,82 @@ export function useMaintenanceCoordinator() {
         };
     }, [selectedMechanic, isBooked, movingLocation, remainingDistanceKm]);
 
-    // Ensure bottom card is shown when mechanic arrives at 5m
+    // Ensure bottom card is shown when mechanic arrives at 5m, set isInRepair to true, wait 3s then navigate to job screen
     useEffect(() => {
         if (isArrived && isBooked) {
             setShowDetailModal(true);
+            setIsInRepair(true);
+
+            if (arrivalTimerRef.current) {
+                clearTimeout(arrivalTimerRef.current);
+            }
+
+            arrivalTimerRef.current = setTimeout(() => {
+                const targetPrice =
+                    params.price ||
+                    (selectedMechanic
+                        ? String((selectedMechanic.flat_fee || 0) + (selectedMechanic.consultation_fee || 0))
+                        : "50");
+
+                router.push({
+                    pathname: "/(drawer)/(tabs)/maintenance/job",
+                    params: {
+                        vehicle: params.car || "Toyota RAV4 (2020)",
+                        pickupPoint: params.location || "KG 125 St, Kigali, Rwanda",
+                        description: params.category || "General Checkup & Engine Diagnostic",
+                        duration: params.duration || formatRealisticDuration(),
+                        price: targetPrice,
+                        mechanicId: selectedMechanic ? String(selectedMechanic.id) : undefined,
+                        fromTab: params.fromTab,
+                    },
+                });
+            }, 3000);
         }
-    }, [isArrived, isBooked]);
+
+        return () => {
+            if (arrivalTimerRef.current) {
+                clearTimeout(arrivalTimerRef.current);
+            }
+        };
+    }, [
+        isArrived,
+        isBooked,
+        params.car,
+        params.location,
+        params.category,
+        params.price,
+        params.duration,
+        params.fromTab,
+        selectedMechanic,
+        router,
+    ]);
 
     const prevSearchTriggerRef = useRef<string | undefined>(params.searchTrigger);
     const prevBookedKeyRef = useRef<string | undefined>(undefined);
 
-    // Handle re-search trigger from Search/Location modals
+    // Handle re-search trigger from Search/Location modals or job decline
     useEffect(() => {
         if (params.searchTrigger && params.searchTrigger !== prevSearchTriggerRef.current) {
             prevSearchTriggerRef.current = params.searchTrigger;
+            if (arrivalTimerRef.current) {
+                clearTimeout(arrivalTimerRef.current);
+                arrivalTimerRef.current = null;
+            }
+            setIsInRepair(false);
             setIsSearching(true);
             setSelectedMechanic(null);
             setShowDetailModal(false);
             setIsBooked(false);
+            prevBookedKeyRef.current = undefined;
             clearRoute();
+            resetMovement();
             refreshLocation();
+
+            router.setParams({
+                bookedMechanicId: undefined,
+                bookedTimestamp: undefined,
+                price: undefined,
+            });
 
             if (mapRef.current && userCoords) {
                 mapRef.current.animateToRegion(
@@ -104,7 +169,7 @@ export function useMaintenanceCoordinator() {
                 );
             }
         }
-    }, [params.searchTrigger, refreshLocation, userCoords, clearRoute]);
+    }, [params.searchTrigger, refreshLocation, userCoords, clearRoute, resetMovement, router]);
 
     // Handle incoming confirmed booking params
     useEffect(() => {
@@ -189,6 +254,81 @@ export function useMaintenanceCoordinator() {
             });
         }
     }, [isBooked, route]);
+
+    // Handle incoming rating modal params
+    useEffect(() => {
+        if (params.showRatingModal === "true") {
+            setShowRatingModal(true);
+            setIsSearching(false);
+            setShowDetailModal(false);
+            setIsBooked(false);
+            setIsInRepair(false);
+            clearRoute();
+            resetMovement();
+
+            if (arrivalTimerRef.current) {
+                clearTimeout(arrivalTimerRef.current);
+                arrivalTimerRef.current = null;
+            }
+
+            if (params.ratingMechanicData) {
+                try {
+                    const parsed = JSON.parse(params.ratingMechanicData);
+                    if (parsed && typeof parsed === "object") {
+                        setRatingMechanic(parsed);
+                        if (mapRef.current && userCoords) {
+                            mapRef.current.animateToRegion(
+                                {
+                                    latitude: userCoords.latitude,
+                                    longitude: userCoords.longitude,
+                                    latitudeDelta: 0.05,
+                                    longitudeDelta: 0.05,
+                                },
+                                800
+                            );
+                        }
+                        return;
+                    }
+                } catch {
+                    // Fallback to id matching if parsing fails
+                }
+            }
+
+            if (params.ratingMechanicId) {
+                const found =
+                    nearbyMechanics.find((m) => String(m.id) === String(params.ratingMechanicId)) ||
+                    MOCK_MECHANICS.find((m) => String(m.id) === String(params.ratingMechanicId));
+                setRatingMechanic(found || MOCK_MECHANICS[0]);
+            } else if (selectedMechanic) {
+                setRatingMechanic(selectedMechanic);
+            } else {
+                setRatingMechanic(MOCK_MECHANICS[0]);
+            }
+
+            if (mapRef.current && userCoords) {
+                mapRef.current.animateToRegion(
+                    {
+                        latitude: userCoords.latitude,
+                        longitude: userCoords.longitude,
+                        latitudeDelta: 0.05,
+                        longitudeDelta: 0.05,
+                    },
+                    800
+                );
+            }
+        } else {
+            setShowRatingModal(false);
+        }
+    }, [
+        params.showRatingModal,
+        params.ratingMechanicId,
+        params.ratingMechanicData,
+        nearbyMechanics,
+        selectedMechanic,
+        userCoords,
+        clearRoute,
+        resetMovement,
+    ]);
 
     // Animate to user location when first acquired
     useEffect(() => {
@@ -282,6 +422,11 @@ export function useMaintenanceCoordinator() {
     }, []);
 
     const handleExitToTabs = useCallback(() => {
+        if (arrivalTimerRef.current) {
+            clearTimeout(arrivalTimerRef.current);
+            arrivalTimerRef.current = null;
+        }
+        setIsInRepair(false);
         clearRoute();
         resetMovement();
         setSelectedMechanic(null);
@@ -289,12 +434,17 @@ export function useMaintenanceCoordinator() {
         setIsBooked(false);
         prevBookedKeyRef.current = undefined;
         prevSearchTriggerRef.current = undefined;
+        setShowRatingModal(false);
+        setRatingMechanic(null);
 
         router.setParams({
             bookedMechanicId: undefined,
             bookedTimestamp: undefined,
             searchTrigger: undefined,
             fromTab: undefined,
+            showRatingModal: undefined,
+            ratingMechanicId: undefined,
+            ratingMechanicData: undefined,
         });
 
         if (router.canDismiss()) {
@@ -305,7 +455,51 @@ export function useMaintenanceCoordinator() {
         router.replace(targetPath);
     }, [clearRoute, resetMovement, router, getTargetTabPath, params.fromTab]);
 
+    const handleOpenRatingModal = useCallback((mechanicToRate: Mechanic) => {
+        setRatingMechanic(mechanicToRate);
+        setShowRatingModal(true);
+        setIsSearching(false);
+        setShowDetailModal(false);
+        setIsBooked(false);
+        setIsInRepair(false);
+        clearRoute();
+        resetMovement();
+
+        if (arrivalTimerRef.current) {
+            clearTimeout(arrivalTimerRef.current);
+            arrivalTimerRef.current = null;
+        }
+
+        if (mapRef.current && userCoords) {
+            mapRef.current.animateToRegion(
+                {
+                    latitude: userCoords.latitude,
+                    longitude: userCoords.longitude,
+                    latitudeDelta: 0.05,
+                    longitudeDelta: 0.05,
+                },
+                800
+            );
+        }
+    }, [clearRoute, resetMovement, userCoords]);
+
+    const handleCloseRatingModal = useCallback(() => {
+        setShowRatingModal(false);
+        setRatingMechanic(null);
+        router.setParams({
+            showRatingModal: undefined,
+            ratingMechanicId: undefined,
+            ratingMechanicData: undefined,
+        });
+        handleExitToTabs();
+    }, [router, handleExitToTabs]);
+
     const handleCloseDetail = useCallback(() => {
+        if (arrivalTimerRef.current) {
+            clearTimeout(arrivalTimerRef.current);
+            arrivalTimerRef.current = null;
+        }
+        setIsInRepair(false);
         if (isBooked) {
             handleExitToTabs();
             return;
@@ -350,6 +544,11 @@ export function useMaintenanceCoordinator() {
     }, [isBooked, showDetailModal, selectedMechanic, handleCloseDetail, handleExitToTabs]);
 
     const handleResearch = useCallback(() => {
+        if (arrivalTimerRef.current) {
+            clearTimeout(arrivalTimerRef.current);
+            arrivalTimerRef.current = null;
+        }
+        setIsInRepair(false);
         setShowDetailModal(false);
         setSelectedMechanic(null);
         setIsBooked(false);
@@ -378,10 +577,13 @@ export function useMaintenanceCoordinator() {
                 params: {
                     mechanicId: mechanic.id,
                     fromTab: params.fromTab,
+                    car: params.car,
+                    location: params.location,
+                    category: params.category,
                 },
             });
         },
-        [router, params.fromTab]
+        [router, params.fromTab, params.car, params.location, params.category]
     );
 
     const handleChat = useCallback(
@@ -420,6 +622,8 @@ export function useMaintenanceCoordinator() {
         showDetailModal,
         isBooked,
         isArrived,
+        isInRepair,
+        setIsInRepair,
         distanceMeters: remainingDistanceMeters,
         distanceKm: remainingDistanceKm,
         durationText: remainingDurationText ?? route?.formattedDuration,
@@ -436,6 +640,10 @@ export function useMaintenanceCoordinator() {
         handleConfirm,
         handleChat,
         handleCall,
+        showRatingModal,
+        ratingMechanic,
+        handleCloseRatingModal,
+        handleOpenRatingModal,
         searchTrigger: params.searchTrigger,
     };
 }

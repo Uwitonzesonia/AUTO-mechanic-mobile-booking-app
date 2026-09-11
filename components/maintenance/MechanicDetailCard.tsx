@@ -13,11 +13,13 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                                                                           durationText,
                                                                           isBooked = false,
                                                                           isArrived = false,
+                                                                          isInRepair = false,
                                                                           onResearch,
                                                                           handleOnBooking,
                                                                           onClose,
                                                                           onChat,
                                                                           onCall,
+                                                                          onRate,
                                                                           style,
                                                                       }) => {
     const slideAnim = useRef(new Animated.Value(18)).current;
@@ -59,9 +61,11 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                     distanceMeters={distanceMeters}
                     durationText={durationText}
                     isArrived={isArrived}
+                    isInRepair={isInRepair}
                     onClose={onClose}
                     onChat={onChat}
                     onCall={onCall}
+                    onRate={onRate}
                 />
             ) : (
                 <MechanicPreviewCard
@@ -70,6 +74,7 @@ export const MechanicDetailCard: React.FC<MechanicDetailCardProps> = ({
                     onResearch={onResearch}
                     onConfirm={handleOnBooking}
                     onClose={onClose}
+                    onRate={onRate}
                 />
             )}
         </Animated.View>

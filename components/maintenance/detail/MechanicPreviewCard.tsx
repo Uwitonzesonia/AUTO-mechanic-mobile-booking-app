@@ -4,6 +4,7 @@ import { BlurView } from "expo-blur";
 import { Ionicons } from "@react-native-vector-icons/ionicons";
 import { Avatar } from "@/components/ui/Avatar";
 import { Button } from "@/components/ui/Button";
+import { Rating } from "@/components/ui/Rating";
 import type { Mechanic } from "@/types/mechanic";
 import {
   formatDistance,
@@ -18,6 +19,7 @@ interface MechanicPreviewCardProps {
   onResearch?: () => void;
   onConfirm?: (mechanic: Mechanic) => void;
   onClose?: () => void;
+  onRate?: (mechanic: Mechanic) => void;
 }
 
 export function MechanicPreviewCard({
@@ -26,6 +28,7 @@ export function MechanicPreviewCard({
   onResearch,
   onConfirm,
   onClose,
+  onRate,
 }: MechanicPreviewCardProps) {
   const name = getMechanicName(mechanic);
   const initial = getMechanicInitial(name);
@@ -62,10 +65,11 @@ export function MechanicPreviewCard({
           <Text style={styles.name} numberOfLines={1}>
             {name}
           </Text>
-          <View style={styles.ratingBadge}>
-            <Ionicons name="star" size={13} color="#FFB800" />
-            <Text style={styles.ratingText}>{rating}</Text>
-          </View>
+          <Rating
+            mechanic={mechanic}
+            variant="badge"
+            onPress={onRate ? () => onRate(mechanic) : undefined}
+          />
         </View>
 
         {onClose && (

@@ -3,14 +3,20 @@ import {ScrollView, StyleSheet, Text, View} from "react-native";
 import {useLocalSearchParams, useNavigation, useRouter} from "expo-router";
 import CustomHeader from "@/components/navigations/CustomHeader";
 import Mechanics from "@/constants/mechanics";
-import {Avatar, Button} from "@/components/ui";
+import {Avatar, Button, Rating} from "@/components/ui";
 import {PaymentMethodSelector} from "@/components/maintenance/PaymentMethodSelector";
 import type {Mechanic} from "@/types/mechanic";
 
 export default function BookingScreen() {
     const navigation = useNavigation();
     const router = useRouter();
-    const {mechanicId, fromTab} = useLocalSearchParams<{ mechanicId: string; fromTab?: string }>();
+    const {mechanicId, fromTab, car, location, category} = useLocalSearchParams<{
+        mechanicId: string;
+        fromTab?: string;
+        car?: string;
+        location?: string;
+        category?: string;
+    }>();
 
     const [mechanic, setMechanic] = useState<Mechanic | undefined>(undefined);
     const [paymentMethod, setPaymentMethod] = useState<string | null>("cash");
@@ -36,6 +42,10 @@ export default function BookingScreen() {
                 bookedMechanicId: String(targetId),
                 bookedTimestamp: String(Date.now()),
                 fromTab: fromTab || undefined,
+                car: car || undefined,
+                location: location || undefined,
+                category: category || undefined,
+                price: String(totalAmount),
             },
         });
     };
@@ -78,6 +88,14 @@ export default function BookingScreen() {
                     avatarBorderColor="#ffffff"
                 />
                 <Text style={styles.mechanicName}>{mechanic?.names || "Mechanic"}</Text>
+                {mechanic?.rating != null ? (
+                    <Rating
+                        mechanic={mechanic}
+                        value={mechanic.rating}
+                        variant="badge"
+                        fromTab={fromTab}
+                    />
+                ) : null}
                 {mechanic?.telephone ? (
                     <Text style={styles.mechanicPhone}>+{mechanic.telephone}</Text>
                 ) : null}

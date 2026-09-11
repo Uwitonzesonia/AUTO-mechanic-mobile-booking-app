@@ -8,11 +8,13 @@ export interface MechanicDetailCardProps {
   durationText?: string | null;
   isBooked?: boolean;
   isArrived?: boolean;
+  isInRepair?: boolean;
   onResearch?: () => void;
   handleOnBooking?: (mechanic: Mechanic) => void;
   onClose?: () => void;
   onChat?: (mechanic: Mechanic) => void;
   onCall?: (mechanic: Mechanic) => void;
+  onRate?: (mechanic: Mechanic) => void;
   style?: StyleProp<ViewStyle>;
 }
 
@@ -45,4 +47,36 @@ export function formatDistance(distanceKm?: number | null, distanceMeters?: numb
     return `${Math.round(distanceKm * 1000)} m`;
   }
   return `${Number(distanceKm).toFixed(1)} km`;
+}
+
+export function formatRealisticDuration(baseDate: Date = new Date(), hoursLater = 3): string {
+  const months = [
+    "January", "February", "March", "April", "May", "June",
+    "July", "August", "September", "October", "November", "December"
+  ];
+
+  const getOrdinal = (d: number) => {
+    if (d > 3 && d < 21) return `${d}th`;
+    switch (d % 10) {
+      case 1: return `${d}st`;
+      case 2: return `${d}nd`;
+      case 3: return `${d}rd`;
+      default: return `${d}th`;
+    }
+  };
+
+  const startDay = getOrdinal(baseDate.getDate());
+  const startMonth = months[baseDate.getMonth()];
+  const startYear = baseDate.getFullYear();
+
+  const end = new Date(baseDate.getTime() + hoursLater * 60 * 60 * 1000);
+  const endDay = end.getDate();
+  const endMonth = months[end.getMonth()];
+  const endYear = end.getFullYear();
+
+  let endHour = end.getHours();
+  const ampm = endHour >= 12 ? "pm" : "am";
+  endHour = endHour % 12 || 12;
+
+  return `${startDay} ${startMonth} ${startYear} - ${endDay} ${endMonth} ${endYear}(${endHour}${ampm})`;
 }
