@@ -46,6 +46,7 @@
   "scripts": {
     "start": "expo start",
     "test": "jest --watchAll",
+    "test:coverage": "jest --coverage",
     "android": "expo run:android",
     "ios": "expo run:ios",
     "web": "expo start --web"
@@ -63,8 +64,11 @@
       "!**/coverage/**",
       "!**/node_modules/**",
       "!**/babel.config.js",
+      "!**/jest.config.js",
       "!**/expo-env.d.ts",
-      "!**/.expo/**"
+      "!**/.expo/**",
+      "!**/.expo-router/**",
+      "!**/app/_layout.tsx"
     ]
   },
   "private": true
