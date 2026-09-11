@@ -51,3 +51,4 @@ yarn-error.*
 /auto-app-solvit-firebase-adminsdk-fbsvc-bf488e64a8.json
 
 coverage/**/*
+/badges/
