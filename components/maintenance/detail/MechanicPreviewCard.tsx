@@ -34,7 +34,6 @@ export function MechanicPreviewCard({
   const initial = getMechanicInitial(name);
   const avatarUrl = getMechanicAvatarUrl(mechanic);
 
-  const rating = mechanic.rating != null ? Number(mechanic.rating).toFixed(1) : "0.0";
   const fixesCount = mechanic.total_services ?? 0;
   const experienceYears = mechanic.years_experience ?? 0;
 

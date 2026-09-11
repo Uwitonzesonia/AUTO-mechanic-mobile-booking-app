@@ -45,7 +45,6 @@ export function MechanicArrivingCard({
     const initial = getMechanicInitial(name);
     const avatarUrl = getMechanicAvatarUrl(mechanic);
 
-    const rating = mechanic.rating != null ? Number(mechanic.rating).toFixed(1) : "0.0";
     const experience = mechanic.years_experience ?? 0;
 
     const isArrivedState = isArrived || isInRepair || (distanceMeters != null && distanceMeters <= 5);

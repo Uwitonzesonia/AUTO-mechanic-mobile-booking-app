@@ -189,8 +189,7 @@ describe("<RatingModal />", () => {
             );
 
             const onClose = jest.fn();
-            const dismissSpy = jest.spyOn(Keyboard, "dismiss");
-            const { getByText, queryByText, getByTestId } = await render(
+            const { getByText, queryByText } = await render(
                 <RatingModal visible={true} mechanic={mockMechanic} onClose={onClose} />
             );
 
