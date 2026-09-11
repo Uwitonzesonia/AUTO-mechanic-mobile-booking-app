@@ -10,7 +10,9 @@
 An on-demand mobile automotive repair and breakdown assistance application built with **React Native**, **Expo SDK 57**, and **TypeScript**. **AUTO Mechanic** connects drivers directly with certified nearby auto mechanics, offering real-time geolocation tracking, upfront pricing, route visualization, and booking management.
 
 ---
+[![Coverage](https://img.shields.io/codecov/c/github/Uwitonzesonia/AUTO-mechanic-mobile-booking-app?style=for-the-badge&logo=codecov&logoColor=white)](https://codecov.io/gh/Uwitonzesonia/AUTO-mechanic-mobile-booking-app)
 
+---
 ## 📑 Table of Contents
 
 - [Overview](#-overview)
