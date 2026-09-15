@@ -86,7 +86,7 @@ app/
 │
 └── (drawer)/                         --> Main App Drawer Navigator
     ├── _layout.tsx                   --> Custom drawer configuration
-    ├── messages.tsx                  --> In-app chat interface
+    ├── index.tsx                  --> In-app chat interface
     ├── settings.tsx                  --> User preferences
     ├── support.tsx                   --> Customer support contact
     ├── termsConditions.tsx           --> Legal & privacy policy

@@ -3,11 +3,11 @@ import {Text, View} from '@/components/Themed';
 import {useAuth} from "@/hooks/useAuth";
 import {Button} from "@/components/ui";
 
-export default function MessagesScreen() {
+export default function ChatScreen() {
     const {logout, userProfile, user} = useAuth();
     return (
         <View style={styles.container}>
-            <Text style={styles.title}>Messages Screen</Text>
+            <Text style={styles.title}>Chat Screen</Text>
             <Button
                 title="Logout"
                 variant="danger"
