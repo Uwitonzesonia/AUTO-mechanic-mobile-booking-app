@@ -51,7 +51,6 @@ export async function setupNotificationChannels() {
             importance: Notifications.AndroidImportance.MAX,
             vibrationPattern: [0, 250, 250, 250],
             lightColor: "#0094ff",
-            sound: "default",
             enableVibrate: true,
             showBadge: true,
         });
@@ -61,7 +60,6 @@ export async function setupNotificationChannels() {
             importance: Notifications.AndroidImportance.HIGH,
             vibrationPattern: [0, 250, 250, 250],
             lightColor: "#0094ff",
-            sound: "default",
         });
     }
 }
