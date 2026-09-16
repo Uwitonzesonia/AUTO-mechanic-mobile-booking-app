@@ -70,7 +70,16 @@ export function MechanicArrivingCard({
         if (onChat) {
             onChat(mechanic);
         } else {
-            router.push("/(drawer)/messages");
+            router.push({
+                pathname: "/(drawer)/messages/chat",
+                params: {
+                    mechanicId: String(mechanic.id),
+                    mechanicName: name,
+                    mechanicAvatar: mechanic.profileImage || "",
+                    mechanicPhone: mechanic.telephone || "",
+                    mechanicRating: mechanic.rating ? String(mechanic.rating) : "4.9",
+                },
+            });
         }
     };
 

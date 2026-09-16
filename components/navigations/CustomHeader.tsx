@@ -17,6 +17,7 @@ export interface CustomHeaderProps {
     subtitle?: string | React.ReactNode;
     leftAction?: React.ReactNode;
     rightAction?: React.ReactNode;
+    children?: React.ReactNode;
     headerInMiddle?: boolean;
     centerTitle?: boolean;
     showBackButton?: boolean;
@@ -38,6 +39,7 @@ export default function CustomHeader(
         subtitle,
         leftAction,
         rightAction,
+        children,
         headerInMiddle,
         centerTitle,
         showBackButton = false,
@@ -174,9 +176,8 @@ export default function CustomHeader(
         <View style={dynamicContainerStyle}>
             <View style={styles.leftContainer}>
                 {renderLeft()}
-                {renderTitle(false)}
+                {children ? children : renderTitle(false)}
             </View>
-
             <View style={styles.rightContainer}>
                 {renderRight()}
             </View>
