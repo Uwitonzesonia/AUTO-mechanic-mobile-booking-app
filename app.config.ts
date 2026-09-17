@@ -47,7 +47,22 @@ export default ({config}: ConfigContext): ExpoConfig => {
             favicon: "./assets/images/favicon.png"
         },
         plugins: [
-            "@react-native-firebase/app",
+            [
+                "@react-native-firebase/app",
+                {
+                    ios: {
+                        disableSPM: true
+                    }
+                }
+            ],
+            [
+                "expo-build-properties",
+                {
+                    ios: {
+                        useFrameworks: "static"
+                    }
+                }
+            ],
             "@react-native-firebase/messaging",
             "@react-native-vector-icons/ionicons",
             "@react-native-vector-icons/material-design-icons",
