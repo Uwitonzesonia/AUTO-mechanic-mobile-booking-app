@@ -110,8 +110,9 @@ jobs:
           path: |
             ~/.npm
             ~/Library/Caches/CocoaPods
-          key: native-sim-${{ runner.os }}-${{ hashFiles('**/package-lock.json', '**/yarn.lock', '**/pnpm-lock.yaml') }}
-          restore-keys: native-sim-${{ runner.os }}-
+          key: native-sim-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
+          restore-keys: |
+            native-sim-${{ runner.os }}-
 
       - name: Install JS dependencies
         timeout-minutes: 20
