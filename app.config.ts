@@ -11,6 +11,8 @@ export default ({config}: ConfigContext): ExpoConfig => {
         scheme: "automechanic",
         userInterfaceStyle: "automatic",
         ios: {
+            googleServicesFile: "./GoogleService-Info.plist",
+            bundleIdentifier: "com.bunsenplus.automechanic",
             supportsTablet: true,
             infoPlist: {
                 SKAdNetworkItems: [
@@ -45,6 +47,8 @@ export default ({config}: ConfigContext): ExpoConfig => {
             favicon: "./assets/images/favicon.png"
         },
         plugins: [
+            "@react-native-firebase/app",
+            "@react-native-firebase/messaging",
             "@react-native-vector-icons/ionicons",
             "@react-native-vector-icons/material-design-icons",
             "@react-native-vector-icons/fontawesome",
@@ -60,7 +64,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
             [
                 "@react-native-google-signin/google-signin",
                 {
-                    iosUrlScheme: "com.googleusercontent.apps.EXPO_PUBLIC_IOS_CLIENT_ID"
+                    iosUrlScheme: process.env.EXPO_PUBLIC_IOS_CLIENT_ID || ""
                 }
             ],
             [

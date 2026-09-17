@@ -7,6 +7,17 @@ import { AuthProvider, NetworkProvider } from "@/context";
 import {useAuth} from "@/hooks/useAuth";
 import AnimatedSplashScreen from "@/components/splash/AnimatedSplashScreen";
 import {LoadingOverlay} from "@/components/ui";
+import {
+    registerBackgroundHandler,
+    requestNotificationPermission,
+    getFcmToken,
+    saveFcmTokenToUser,
+    setupTokenRefreshListener,
+    setupNotificationClickListener,
+} from "@/services/fcmService";
+
+// Register background FCM handler early
+registerBackgroundHandler();
 
 export default function RootLayout() {
     return (
@@ -31,7 +42,7 @@ function RootContent() {
 }
 
 function RootLayoutNav() {
-    const {isAuthenticated, isLoading} = useAuth();
+    const {isAuthenticated, isLoading, user} = useAuth();
     const segments = useSegments();
     const router = useRouter();
 
@@ -49,6 +60,43 @@ function RootLayoutNav() {
 
         SplashScreen.hideAsync();
     }, [isAuthenticated, isLoading, segments]);
+
+    // Initialize real FCM token sync and push notification routing
+    useEffect(() => {
+        if (!isAuthenticated || !user?.uid) return;
+
+        let isMounted = true;
+        const initFcm = async () => {
+            const hasPermission = await requestNotificationPermission();
+            if (hasPermission && isMounted) {
+                const token = await getFcmToken();
+                if (token && user?.uid) {
+                    await saveFcmTokenToUser(user.uid, token);
+                }
+            }
+        };
+
+        initFcm();
+
+        const unsubscribeRefresh = setupTokenRefreshListener(user.uid);
+        const unsubscribeClick = setupNotificationClickListener((chatId, mechanicId) => {
+            if (chatId || mechanicId) {
+                router.push({
+                    pathname: "/(drawer)/messages/chat",
+                    params: {
+                        chatId: chatId || "",
+                        mechanicId: mechanicId || "",
+                    },
+                });
+            }
+        });
+
+        return () => {
+            isMounted = false;
+            if (unsubscribeRefresh) unsubscribeRefresh();
+            if (unsubscribeClick) unsubscribeClick();
+        };
+    }, [isAuthenticated, user?.uid]);
 
     return (
         <View style={styles.container}>
