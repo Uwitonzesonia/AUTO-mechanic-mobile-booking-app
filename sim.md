@@ -31,7 +31,7 @@ Because Apple's iOS Simulator and Xcode tools require macOS, developers on Windo
 
 `@expo/fingerprint` generates a deterministic hash representing only the **native build inputs**:
 * Native modules in `package.json` and CocoaPods podspecs.
-* Config plugins (Firebase, Google Sign-In, Location, etc.) in [app.config.ts](file:///D:/dev/SOLVIT/auto-app/app.config.ts).
+* Config plugins (Firebase, Google Sign-In, Location, etc.) in [`app.config.ts`](./app.config.ts).
 * Native directories (`ios/` if present) and iOS permissions.
 
 ### Caching Behavior in CI:
@@ -45,13 +45,13 @@ Because Apple's iOS Simulator and Xcode tools require macOS, developers on Windo
 The project has been configured with the following files and scripts:
 
 ### Workflow and Gate Scripts
-* **[.github/workflows/native-sim.yml](file:///D:/dev/SOLVIT/auto-app/.github/workflows/native-sim.yml)**: Workflow that provisions the macOS runner, manages fingerprint caching, boots the simulator, and starts the tunnel.
-* **[.github/native-sim/gate.cjs](file:///D:/dev/SOLVIT/auto-app/.github/native-sim/gate.cjs)**: Authentication gate to ensure only authorized connections can view and control the simulator.
+* **[`.github/workflows/native-sim.yml`](./.github/workflows/native-sim.yml)**: Workflow that provisions the macOS runner, manages fingerprint caching, boots the simulator, and starts the tunnel.
+* **[`.github/native-sim/gate.cjs`](./.github/native-sim/gate.cjs)**: Authentication gate to ensure only authorized connections can view and control the simulator.
 
 ### Windows Compatibility Script
-* **[scripts/patch-native-sim.js](file:///D:/dev/SOLVIT/auto-app/scripts/patch-native-sim.js)**: Automatically patches `native-sim` upon `npm install` (`postinstall`) so that it works cross-platform on Windows (`where` instead of `which`, and Windows URL launcher).
+* **[`scripts/patch-native-sim.js`](./scripts/patch-native-sim.js)**: Automatically patches `native-sim` upon `npm install` (`postinstall`) so that it works cross-platform on Windows (`where` instead of `which`, and Windows URL launcher).
 
-### NPM Scripts in [package.json](file:///D:/dev/SOLVIT/auto-app/package.json)
+### NPM Scripts in [`package.json`](./package.json)
 
 | Command | Action |
 | :--- | :--- |
@@ -132,13 +132,13 @@ agent-device snapshot -i
 
 ### Issue 1: `'native-sim' is not recognized as an internal or external command`
 * **Cause**: `native-sim` is not in `devDependencies` or dependencies have not been installed.
-* **Fix**: Ensure `"native-sim": "^0.1.0"` is in `devDependencies` and run `npm install`. The `postinstall` script [`scripts/patch-native-sim.js`](file:///D:/dev/SOLVIT/auto-app/scripts/patch-native-sim.js) will automatically apply Windows compatibility patches.
+* **Fix**: Ensure `"native-sim": "^0.1.0"` is in `devDependencies` and run `npm install`. The `postinstall` script [`scripts/patch-native-sim.js`](./scripts/patch-native-sim.js) will automatically apply Windows compatibility patches.
 
 ---
 
 ### Issue 2: `[react-native-firebase] SPM + static linkage is not supported`
 * **Cause**: React Native Firebase defaults to Swift Package Manager (SPM), which fails when combined with static library/framework linkage in Expo.
-* **Fix**: In [`app.config.ts`](file:///D:/dev/SOLVIT/auto-app/app.config.ts), opt out of SPM for Firebase and enable static frameworks:
+* **Fix**: In [`app.config.ts`](./app.config.ts), opt out of SPM for Firebase and enable static frameworks:
   ```typescript
   plugins: [
     [
@@ -164,7 +164,7 @@ agent-device snapshot -i
 ---
 
 ### Issue 3: `hashFiles(...) couldn't finish within 120 seconds`
-* **Cause**: In [`.github/workflows/native-sim.yml`](file:///D:/dev/SOLVIT/auto-app/.github/workflows/native-sim.yml), the cache key used recursive glob patterns (`**/package-lock.json`). During post-job cleanup, GitHub scanned the entire workspace including `node_modules`, `build/`, and `DerivedData`, exceeding GitHub's 120-second expression timeout.
+* **Cause**: In [`.github/workflows/native-sim.yml`](./.github/workflows/native-sim.yml), the cache key used recursive glob patterns (`**/package-lock.json`). During post-job cleanup, GitHub scanned the entire workspace including `node_modules`, `build/`, and `DerivedData`, exceeding GitHub's 120-second expression timeout.
 * **Fix**: Restrict `hashFiles` to the root lockfile:
   ```yaml
   key: native-sim-${{ runner.os }}-${{ hashFiles('package-lock.json') }}
@@ -173,12 +173,12 @@ agent-device snapshot -i
 ---
 
 ### Issue 4: `Missing iosUrlScheme in provided options: {"iosUrlScheme":""}` & App Crash on Open
-* **Cause**: When reusing a cached `.app`, `npx expo export:embed` re-evaluates [`app.config.ts`](file:///D:/dev/SOLVIT/auto-app/app.config.ts). If environment variables (`EXPO_PUBLIC_*`) were not passed to the `Install and launch app` or `Build app` step, values like `iosUrlScheme` became `""` and Firebase initialized with `undefined` keys, throwing fatal unhandled exceptions at launch.
+* **Cause**: When reusing a cached `.app`, `npx expo export:embed` re-evaluates [`app.config.ts`](./app.config.ts). If environment variables (`EXPO_PUBLIC_*`) were not passed to the `Install and launch app` or `Build app` step, values like `iosUrlScheme` became `""` and Firebase initialized with `undefined` keys, throwing fatal unhandled exceptions at launch.
 * **Fix**:
-  1. Pass all `EXPO_PUBLIC_*` secrets in [`.github/workflows/native-sim.yml`](file:///D:/dev/SOLVIT/auto-app/.github/workflows/native-sim.yml) under both `Build app` and `Install and launch app`.
-  2. In [`app.config.ts`](file:///D:/dev/SOLVIT/auto-app/app.config.ts), provide fallback values (e.g., `iosUrlScheme: process.env.EXPO_PUBLIC_IOS_CLIENT_ID || "com.googleusercontent.apps.588096104374-j5olpk59dc4qlc7pv4gbk6dp42llj2ur"`).
-  3. In [`utils/renderSecrets.ts`](file:///D:/dev/SOLVIT/auto-app/utils/renderSecrets.ts), provide fallback constants so Firebase never receives `undefined`.
-  4. In [`config/firebaseConfig.ts`](file:///D:/dev/SOLVIT/auto-app/config/firebaseConfig.ts), safeguard initialization with `try/catch`.
+  1. Pass all `EXPO_PUBLIC_*` secrets in [`.github/workflows/native-sim.yml`](./.github/workflows/native-sim.yml) under both `Build app` and `Install and launch app`.
+  2. In [`app.config.ts`](./app.config.ts), provide fallback values (e.g., `iosUrlScheme: process.env.EXPO_PUBLIC_IOS_CLIENT_ID || "com.googleusercontent.apps.588096104374-j5olpk59dc4qlc7pv4gbk6dp42llj2ur"`).
+  3. In [`utils/renderSecrets.ts`](./utils/renderSecrets.ts), provide fallback constants so Firebase never receives `undefined`.
+  4. In [`config/firebaseConfig.ts`](./config/firebaseConfig.ts), safeguard initialization with `try/catch`.
 
 ---
 
@@ -187,7 +187,7 @@ agent-device snapshot -i
   1. `CODE_SIGNING_ALLOWED=NO` in `xcodebuild` stripped all code signing and entitlements from the simulator app bundle. Without entitlements, iOS Simulator's `securityd` (Keychain daemon) blocks the app from reading/writing keychain items.
   2. Missing Keychain Sharing entitlement for Google Sign-In.
 * **Fix**:
-  1. In [`app.config.ts`](file:///D:/dev/SOLVIT/auto-app/app.config.ts), configure `keychain-access-groups` under `ios.entitlements`:
+  1. In [`app.config.ts`](./app.config.ts), configure `keychain-access-groups` under `ios.entitlements`:
      ```typescript
      ios: {
        ...
@@ -199,7 +199,7 @@ agent-device snapshot -i
        },
      }
      ```
-  2. In [`.github/workflows/native-sim.yml`](file:///D:/dev/SOLVIT/auto-app/.github/workflows/native-sim.yml), replace `CODE_SIGNING_ALLOWED=NO` with ad-hoc simulator signing:
+  2. In [`.github/workflows/native-sim.yml`](./.github/workflows/native-sim.yml), replace `CODE_SIGNING_ALLOWED=NO` with ad-hoc simulator signing:
      ```yaml
      CODE_SIGN_IDENTITY="-" \
      CODE_SIGNING_REQUIRED=NO \
@@ -210,4 +210,4 @@ agent-device snapshot -i
 
 ### Issue 6: `native-sim.yml is not on the default branch`
 * **Cause**: GitHub's `workflow_dispatch` API only recognizes workflows present on the repository's default branch (`main`).
-* **Fix**: Ensure [`.github/workflows/native-sim.yml`](file:///D:/dev/SOLVIT/auto-app/.github/workflows/native-sim.yml) is committed and pushed to `main`.
+* **Fix**: Ensure [`.github/workflows/native-sim.yml`](./.github/workflows/native-sim.yml) is committed and pushed to `main`.

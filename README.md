@@ -163,7 +163,7 @@ Ensure you have the following installed on your development machine:
 - **Node.js**: `v18.x` or `v20.x` LTS recommended
 - **npm** (or **yarn** / **pnpm**)
 - **Android Studio** (with Android SDK & emulator) for Android development
-- **Xcode** (macOS only) for iOS simulator testing
+- **Xcode** (macOS only) or **native-sim** for Windows (see [`sim.md`](./sim.md)) for iOS simulator testing
 - **Expo Go** app on your physical device, or an Expo Dev Build
 
 ---
@@ -255,6 +255,9 @@ EXPO_PUBLIC_MAPBOX_ACCESS_TOKEN=your_mapbox_public_token
 | `npm run android` | Builds and runs the application on an Android device/emulator |
 | `npm run ios` | Builds and runs the application on an iOS device/simulator |
 | `npm run web` | Serves the web-compiled version |
+| `npm run sim` | Launches remote iOS simulator stream via `native-sim` (Windows friendly, see [`sim.md`](./sim.md)) |
+| `npm run sim:status` | Checks active remote simulator tunnel status |
+| `npm run sim:down` | Stops the remote simulator runner and frees CI minutes |
 | `npm test` | Runs the Jest test suite in watch mode |
 | `npx jest --watchAll=false` | Executes all Jest tests once |
 | `npx tsc --noEmit` | Performs full TypeScript type-checking across the codebase |
