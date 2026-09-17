@@ -79,7 +79,7 @@ export default ({config}: ConfigContext): ExpoConfig => {
             [
                 "@react-native-google-signin/google-signin",
                 {
-                    iosUrlScheme: process.env.EXPO_PUBLIC_IOS_CLIENT_ID || ""
+                    iosUrlScheme: process.env.EXPO_PUBLIC_IOS_CLIENT_ID || "com.googleusercontent.apps.588096104374-j5olpk59dc4qlc7pv4gbk6dp42llj2ur"
                 }
             ],
             [
@@ -100,8 +100,8 @@ export default ({config}: ConfigContext): ExpoConfig => {
             [
                 "react-native-fbsdk-next",
                 {
-                    appID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID_HERE || "",
-                    clientToken: process.env.EXPO_PUBLIC_FACEBOOK_CLIENT_TOKEN_HERE || "",
+                    appID: process.env.EXPO_PUBLIC_FACEBOOK_APP_ID_HERE || "2335665420540929",
+                    clientToken: process.env.EXPO_PUBLIC_FACEBOOK_CLIENT_TOKEN_HERE || "326b8c3b119de8ad3451b7b6611e8339",
                     displayName: "AUTO Mechanic",
                     advertiserIDCollectionEnabled: false,
                     autoLogAppEventsEnabled: false
@@ -116,8 +116,8 @@ export default ({config}: ConfigContext): ExpoConfig => {
             [
                 "react-native-maps",
                 {
-                    androidGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "",
-                    iosGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_IOS_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || ""
+                    androidGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_ANDROID_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCXWyA-jubhPCNDQ2cc1e4ZkKXRT5bhaW8",
+                    iosGoogleMapsApiKey: process.env.EXPO_PUBLIC_GOOGLE_MAPS_IOS_API_KEY || process.env.EXPO_PUBLIC_GOOGLE_MAPS_API_KEY || "AIzaSyCXWyA-jubhPCNDQ2cc1e4ZkKXRT5bhaW8"
                 }
             ]
         ],
