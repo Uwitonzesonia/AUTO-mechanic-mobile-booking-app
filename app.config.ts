@@ -14,6 +14,12 @@ export default ({config}: ConfigContext): ExpoConfig => {
             googleServicesFile: "./GoogleService-Info.plist",
             bundleIdentifier: "com.bunsenplus.automechanic",
             supportsTablet: true,
+            entitlements: {
+                "keychain-access-groups": [
+                    "$(AppIdentifierPrefix)com.google.GIDSignIn",
+                    "$(AppIdentifierPrefix)com.bunsenplus.automechanic"
+                ]
+            },
             infoPlist: {
                 SKAdNetworkItems: [
                     {
